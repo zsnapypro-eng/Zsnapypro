@@ -3,77 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Portal | Z Snappy Pro</title>
+    <title>Command Center | ZSP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; }
-        .glass { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
+        body { background: #0f172a; color: #e2e8f0; font-family: sans-serif; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
         .hide { display: none !important; }
     </style>
 </head>
-<body class="p-6 max-w-6xl mx-auto">
+<body class="p-6">
 
-    <div id="login-screen" class="min-h-screen flex items-center justify-center">
-        <div class="glass p-10 rounded-2xl text-center max-w-md w-full">
-            <h1 class="text-2xl font-bold mb-6">Admin Access Only</h1>
-            <button onclick="adminLogin()" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-bold transition">
-                Login with Google
-            </button>
+    <div id="gate" class="h-screen flex items-center justify-center">
+        <div class="glass p-8 rounded-2xl text-center">
+            <h1 class="text-2xl font-bold mb-4 text-sky-400">Restricted Access</h1>
+            <p class="text-sm text-slate-400 mb-6">Z Snappy Pro Admin Node</p>
+            <button onclick="adminAuth()" class="bg-sky-600 hover:bg-sky-500 text-white px-6 py-2 rounded-lg font-bold">Authenticate</button>
         </div>
     </div>
 
-    <div id="dashboard" class="hide">
-        <header class="flex justify-between items-center mb-10">
-            <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
-                Command Center
-            </h1>
-            <button onclick="firebase.auth().signOut()" class="text-sm text-slate-400 hover:text-white">Logout</button>
+    <div id="dashboard" class="hide max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <header class="md:col-span-3 flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold text-sky-400 tracking-tighter">ZSP Command Node</h1>
+            <button onclick="firebase.auth().signOut()" class="text-xs text-red-400 uppercase font-bold tracking-widest border border-red-900 px-3 py-1 rounded">Terminate Session</button>
         </header>
 
-        <section class="glass p-8 rounded-2xl mb-8">
-            <h2 class="text-xl font-bold mb-4 text-blue-300">🔴 Live Meeting Link</h2>
-            <div class="flex gap-4">
-                <input type="text" id="inp-link" class="flex-1 bg-slate-900 border border-slate-700 p-4 rounded-xl text-white font-mono" placeholder="https://meet.google.com/...">
-                <button onclick="updateLink()" class="bg-green-600 hover:bg-green-500 px-8 rounded-xl font-bold">Update</button>
-            </div>
-            <p class="text-slate-400 text-sm mt-2">Updates instantly for all users.</p>
-        </section>
-
-        <section class="glass p-8 rounded-2xl">
-            <div class="flex justify-between items-end mb-6">
-                <h2 class="text-xl font-bold text-blue-300">👥 Registered Candidates</h2>
-                <button onclick="fetchUsers()" class="text-sm bg-slate-700 px-3 py-1 rounded hover:bg-slate-600">Refresh Data</button>
-            </div>
+        <div class="glass p-6 rounded-2xl space-y-6">
+            <h2 class="text-sm font-bold text-slate-400 uppercase">Signal Controls</h2>
             
+            <div>
+                <label class="text-xs text-sky-300 block mb-1">Meet Link Deployer</label>
+                <div class="flex gap-2">
+                    <input id="inp-link" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-sm w-full font-mono text-white">
+                    <button onclick="updateLink()" class="bg-green-600 px-3 py-1 rounded text-xs font-bold">PUSH</button>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-700 pt-4">
+                <label class="text-xs text-red-300 block mb-1">Emergency Broadcast</label>
+                <textarea id="inp-broadcast" class="bg-slate-900 border border-slate-700 rounded w-full p-2 text-sm mb-2 h-20" placeholder="Global Alert Message..."></textarea>
+                <div class="flex gap-2">
+                    <button onclick="setBroadcast(true)" class="flex-1 bg-red-600 hover:bg-red-500 py-2 rounded text-xs font-bold">DEPLOY SIGNAL</button>
+                    <button onclick="setBroadcast(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded text-xs font-bold">KILL SIGNAL</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass p-6 rounded-2xl space-y-6">
+            <h2 class="text-sm font-bold text-slate-400 uppercase">Content Matrix</h2>
+            
+            <div>
+                <label class="text-xs text-sky-300 block mb-1">Daily Tasks (Line separated)</label>
+                <textarea id="inp-tasks" class="bg-slate-900 border border-slate-700 rounded w-full p-2 text-sm h-24 font-mono text-xs"></textarea>
+                <button onclick="updateTasks()" class="w-full bg-blue-600 py-1 rounded text-xs font-bold mt-2">SYNC TASKS</button>
+            </div>
+
+            <div class="border-t border-slate-700 pt-4">
+                <label class="text-xs text-sky-300 block mb-1">Add Resource</label>
+                <input id="res-label" placeholder="Label" class="bg-slate-900 border border-slate-700 rounded w-full mb-2 px-2 py-1 text-xs">
+                <input id="res-url" placeholder="URL" class="bg-slate-900 border border-slate-700 rounded w-full mb-2 px-2 py-1 text-xs">
+                <button onclick="addResource()" class="w-full bg-purple-600 py-1 rounded text-xs font-bold">ADD NODE</button>
+            </div>
+        </div>
+
+        <div class="glass p-6 rounded-2xl flex flex-col h-96">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="text-sm font-bold text-slate-400 uppercase">Elite Circle Spy</h2>
+                <button onclick="clearChat()" class="text-[10px] text-red-400 hover:text-red-300">PURGE LOGS</button>
+            </div>
+            <div id="spy-chat" class="flex-1 bg-slate-900/50 rounded overflow-y-auto p-2 space-y-2 text-xs font-mono">
+                </div>
+        </div>
+
+        <div class="md:col-span-3 glass p-6 rounded-2xl">
+            <h2 class="text-sm font-bold text-slate-400 uppercase mb-4">Registered Agents</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="text-slate-400 border-b border-slate-700 text-sm uppercase">
-                            <th class="p-3">Name</th>
-                            <th class="p-3">Status</th>
-                            <th class="p-3">Phone</th>
-                            <th class="p-3">ID</th>
-                            <th class="p-3">Email</th>
+                        <tr class="text-slate-500 border-b border-slate-700 text-xs uppercase">
+                            <th class="p-2">Name</th>
+                            <th class="p-2">City</th>
+                            <th class="p-2">Email</th>
+                            <th class="p-2">Joined</th>
+                            <th class="p-2 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="table-body" class="text-sm font-mono">
-                        </tbody>
+                    <tbody id="student-table" class="text-sm"></tbody>
                 </table>
             </div>
-        </section>
+        </div>
+
     </div>
 
     <script>
-        // --- 🔒 SECURITY CONFIG ---
-        const ALLOWED_ADMIN = "zsnapypro@gmail.com"; // <--- CHANGE THIS
-        // --------------------------
-
+        // CONFIG
+        const ALLOWED_ADMIN = "zsnapypro@gmail.com";
+        const PASSCODE = "364133";
+        
         const firebaseConfig = {
             apiKey: "AIzaSyAzoGp2rt4CB9e5yazdlK-0G28Dp7TbXtQ",
             authDomain: "zsnapypro-d9d22.firebaseapp.com",
@@ -82,65 +112,128 @@
             messagingSenderId: "614389089654",
             appId: "1:614389089654:web:b4e8d502a8c0e996146657"
         };
-
+        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // AUTH LISTENER
-        auth.onAuthStateChanged(user => {
-            if(user && user.email === ALLOWED_ADMIN) {
-                document.getElementById('login-screen').classList.add('hide');
-                document.getElementById('dashboard').classList.remove('hide');
-                initDashboard();
-            } else if (user) {
-                Swal.fire('Access Denied', 'You are not an admin.', 'error');
-                auth.signOut();
-            } else {
-                document.getElementById('login-screen').classList.remove('hide');
-                document.getElementById('dashboard').classList.add('hide');
-            }
-        });
-
-        function adminLogin() {
-            auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+        // AUTH & PASSCODE GATE
+        function adminAuth() {
+            auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then((res) => {
+                if(res.user.email === ALLOWED_ADMIN) {
+                    Swal.fire({
+                        title: 'Security Clearance',
+                        input: 'password',
+                        inputPlaceholder: 'Enter Passcode',
+                        background: '#1e293b',
+                        color: '#fff',
+                        confirmButtonColor: '#0ea5e9',
+                        preConfirm: (val) => {
+                            if(val !== PASSCODE) Swal.showValidationMessage('Access Denied');
+                        }
+                    }).then((result) => {
+                        if(result.isConfirmed) initAdmin();
+                    });
+                } else {
+                    Swal.fire('Unauthorized', 'Invalid Identity Protocol', 'error');
+                    auth.signOut();
+                }
+            });
         }
 
-        // DASHBOARD LOGIC
-        function initDashboard() {
-            // Get current link
-            db.collection('settings').doc('config').get().then(doc => {
+        function initAdmin() {
+            document.getElementById('gate').classList.add('hide');
+            document.getElementById('dashboard').classList.remove('hide');
+            loadData();
+        }
+
+        // LOAD DATA
+        function loadData() {
+            // Link
+            db.collection('system').doc('config').get().then(doc => {
                 if(doc.exists) document.getElementById('inp-link').value = doc.data().meetLink || '';
             });
-            fetchUsers();
-        }
 
-        function updateLink() {
-            const link = document.getElementById('inp-link').value;
-            db.collection('settings').doc('config').set({ meetLink: link }, { merge: true })
-                .then(() => Swal.fire('Success', 'Link Updated', 'success'));
-        }
+            // Tasks
+            db.collection('system').doc('tasks').get().then(doc => {
+                if(doc.exists) document.getElementById('inp-tasks').value = (doc.data().items || []).join('\n');
+            });
 
-        function fetchUsers() {
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = '<tr><td class="p-4">Loading...</td></tr>';
-            
-            db.collection('registrations').orderBy('timestamp', 'desc').get().then(snap => {
-                let html = '';
-                snap.forEach(doc => {
+            // Students
+            db.collection('students').orderBy('joinedAt', 'desc').onSnapshot(snap => {
+                const tbody = document.getElementById('student-table');
+                tbody.innerHTML = snap.docs.map(doc => {
                     const d = doc.data();
-                    html += `
-                        <tr class="border-b border-slate-800 hover:bg-slate-800/50">
-                            <td class="p-3 font-bold text-white">${d.name}</td>
-                            <td class="p-3"><span class="bg-blue-900 text-blue-200 px-2 py-1 rounded text-xs">${d.status}</span></td>
-                            <td class="p-3 text-slate-400">${d.phone}</td>
-                            <td class="p-3 text-yellow-500">${d.registrationID}</td>
-                            <td class="p-3 text-slate-500">${d.email}</td>
+                    const date = d.joinedAt ? new Date(d.joinedAt.toDate()).toLocaleDateString() : 'N/A';
+                    return `
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/30">
+                            <td class="p-2 font-bold text-white">${d.name}</td>
+                            <td class="p-2 text-slate-300">${d.city}</td>
+                            <td class="p-2 text-slate-400 font-mono text-xs">${d.email}</td>
+                            <td class="p-2 text-slate-500 text-xs">${date}</td>
+                            <td class="p-2 text-right">
+                                <button onclick="deleteUser('${doc.id}')" class="text-red-500 hover:text-red-400 text-xs font-bold uppercase">Terminate</button>
+                            </td>
                         </tr>
                     `;
-                });
-                tbody.innerHTML = html;
+                }).join('');
             });
+
+            // Spy Chat
+            db.collection('chat').orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
+                const box = document.getElementById('spy-chat');
+                box.innerHTML = snap.docs.map(doc => {
+                    const m = doc.data();
+                    return `<div class="border-b border-slate-800 pb-1 mb-1">
+                        <span class="text-sky-400 font-bold">${m.sender}:</span> <span class="text-slate-300">${m.text}</span>
+                    </div>`;
+                }).join('');
+            });
+        }
+
+        // ACTIONS
+        function updateLink() {
+            const link = document.getElementById('inp-link').value;
+            db.collection('system').doc('config').set({ meetLink: link }, { merge: true });
+            toast('Link Deployed');
+        }
+
+        function setBroadcast(active) {
+            const msg = document.getElementById('inp-broadcast').value;
+            db.collection('system').doc('broadcast').set({ active: active, message: msg });
+            toast(active ? 'Signal Live' : 'Signal Killed');
+        }
+
+        function updateTasks() {
+            const tasks = document.getElementById('inp-tasks').value.split('\n').filter(t => t.trim());
+            db.collection('system').doc('tasks').set({ items: tasks });
+            toast('Tasks Synced');
+        }
+
+        function addResource() {
+            const label = document.getElementById('res-label').value;
+            const url = document.getElementById('res-url').value;
+            if(!label || !url) return;
+            
+            db.collection('system').doc('resources').get().then(doc => {
+                const current = doc.exists ? doc.data().items || [] : [];
+                current.push({ label, url });
+                db.collection('system').doc('resources').set({ items: current });
+                document.getElementById('res-label').value = '';
+                document.getElementById('res-url').value = '';
+                toast('Resource Node Added');
+            });
+        }
+
+        function deleteUser(uid) {
+            if(confirm('CONFIRM TERMINATION: This cannot be undone.')) {
+                db.collection('students').doc(uid).delete();
+            }
+        }
+
+        function toast(msg) {
+            const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, timerProgressBar: true });
+            Toast.fire({ icon: 'success', title: msg });
         }
     </script>
 </body>
