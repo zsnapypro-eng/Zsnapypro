@@ -183,7 +183,7 @@
             
             <div class="flex justify-between items-end mb-8">
                 <span class="text-sm font-medium text-slate-400">Commitment</span>
-                <span class="text-4xl font-bold text-slate-900">₹999</span>
+                <span class="text-4xl font-bold text-slate-900">₹200</span>
             </div>
 
             <button onclick="initiatePayment()" class="btn-primary w-full flex items-center justify-center gap-2 group">
@@ -442,7 +442,7 @@
 
         // --- 💰 REGISTRATION ---
         function initiatePayment() {
-            window.location.href = `upi://pay?pa=monsterprince3641@ibl&pn=ZSnappyPro&am=999.00&cu=INR`;
+            window.location.href = `upi://pay?pa=monsterprince3641@ibl&pn=ZSnappyPro&am=200.00&cu=INR`;
             
             document.getElementById('loading-bar').querySelector('div').style.width = '100%';
             
