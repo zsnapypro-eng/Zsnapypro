@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Z Snappy Pro | AI Media Engine</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -14,31 +13,16 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <style>
-        :root {
-            --sky-blue: #0ea5e9;
-            --glass-bg: rgba(255, 255, 255, 0.75);
-            --border-white: rgba(255, 255, 255, 0.4);
-        }
-
+        :root { --glass-bg: rgba(255, 255, 255, 0.75); --border-white: rgba(255, 255, 255, 0.4); }
         body {
             font-family: 'Inter', sans-serif;
             background: #f8fafc;
-            background-image: 
-                radial-gradient(at 0% 0%, hsla(199,100%,93%,1) 0, transparent 50%), 
-                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230ea5e9' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2v-4h4v-2H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-image: radial-gradient(at 0% 0%, hsla(199,100%,93%,1) 0, transparent 50%), url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230ea5e9' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2v-4h4v-2H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
             color: #0f172a;
         }
-
         .google-brand { font-family: 'Space Grotesk', sans-serif; letter-spacing: -1px; }
-
-        .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--border-white);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
-        }
-
-        .hidden-section { display: none; }
+        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(16px); border: 1px solid var(--border-white); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05); }
+        .hidden-section { display: none !important; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -57,7 +41,6 @@
         </header>
 
         <div id="ui-engine" class="max-w-xl mx-auto">
-            
             <div id="auth-state" class="glass-panel p-10 rounded-[2rem] text-center">
                 <h3 class="text-2xl font-bold mb-2">Initialize Session</h3>
                 <p class="text-slate-500 mb-8">Identity verification required via Google</p>
@@ -97,13 +80,13 @@
                     <span class="text-xs text-slate-400 font-bold uppercase block">Candidate ID</span>
                     <span id="out-id" class="font-mono font-bold text-sky-600 text-2xl"></span>
                 </div>
-                <button onclick="joinSession()" class="w-full p-5 bg-sky-600 text-white rounded-2xl font-bold">Join Live Session</button>
+                <button onclick="joinSession()" class="w-full p-5 bg-sky-600 text-white rounded-2xl font-bold shadow-lg hover:shadow-sky-200 transition-all">Join Live Session</button>
             </div>
-
         </div>
     </main>
 
     <script>
+        // CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyAzoGp2rt4CB9e5yazdlK-0G28Dp7TbXtQ",
             authDomain: "zsnapypro-d9d22.firebaseapp.com",
@@ -117,7 +100,16 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         let userProfile = null;
+        let dynamicLink = "https://meet.google.com/"; // Default
 
+        // 1. LISTEN FOR DYNAMIC LINK UPDATES
+        db.collection('settings').doc('config').onSnapshot((doc) => {
+            if (doc.exists && doc.data().meetLink) {
+                dynamicLink = doc.data().meetLink;
+            }
+        });
+
+        // 2. AUTH FLOW
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 userProfile = user;
@@ -129,6 +121,7 @@
             }
         });
 
+        // 3. UI HANDLERS
         document.getElementById('btn-google').onclick = () => {
             const provider = new firebase.auth.GoogleAuthProvider();
             auth.signInWithPopup(provider).catch(e => Swal.fire('Error', e.message, 'error'));
@@ -140,22 +133,21 @@
             window.location.href = upiUrl;
 
             Swal.fire({
-                title: 'Deploying Media Engine...',
-                html: 'Syncing with Payment Gateway.<br>Unlock in <b>5</b> seconds.',
+                title: 'Processing...',
+                html: 'Verifying payment gateway status...',
                 timer: 5000,
                 timerProgressBar: true,
-                didOpen: () => Swal.showLoading(),
-                allowOutsideClick: false
+                didOpen: () => Swal.showLoading()
             }).then(() => {
                 Swal.fire({
-                    title: 'Action Required',
-                    text: 'Send payment screenshot to finalize your seat.',
-                    icon: 'success',
-                    confirmButtonText: 'Send Screenshot (WhatsApp)',
+                    title: 'Verification Needed',
+                    text: 'Send screenshot to WhatsApp to activate seat.',
+                    icon: 'warning',
+                    confirmButtonText: 'Open WhatsApp',
                     confirmButtonColor: '#25D366'
                 }).then((res) => {
                     if(res.isConfirmed) {
-                        const msg = encodeURIComponent("i have complected registartinon here is cscreenshot");
+                        const msg = encodeURIComponent("Here is my payment screenshot for Z Snappy Pro");
                         window.open(`https://wa.me/916205170591?text=${msg}`, '_blank');
                     }
                     finalizeDeployment();
@@ -164,7 +156,7 @@
         };
 
         async function finalizeDeployment() {
-            const regID = `ZSP-AI-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+            const regID = `ZSP-${Math.floor(100000 + Math.random() * 900000)}`;
             const payload = {
                 name: userProfile.displayName,
                 email: userProfile.email,
@@ -190,14 +182,15 @@
 
         function joinSession() {
             Swal.fire({
-                title: 'Verify ID',
+                title: 'Enter Access ID',
                 input: 'text',
+                confirmButtonText: 'Join Room',
                 confirmButtonColor: '#0ea5e9'
             }).then((res) => {
                 if (res.value === window.sessionID) {
-                    window.open('https://meet.google.com/abc-defg-hij', '_blank');
-                } else if(res.value) {
-                    Swal.fire('Invalid ID', '', 'error');
+                    window.open(dynamicLink, '_blank');
+                } else if (res.value) {
+                    Swal.fire('Access Denied', 'Invalid ID', 'error');
                 }
             });
         }
