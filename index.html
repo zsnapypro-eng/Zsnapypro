@@ -199,7 +199,9 @@
         <!-- Top Header -->
         <header class="bg-white/80 backdrop-blur border-b border-sky-100 sticky top-0 z-40">
             <div class="max-w-5xl mx-auto px-6 h-16 flex justify-between items-center">
-                <div class="flex items-center gap-2">
+                <!-- LOGO SECTION: DYNAMICALLY UPDATED -->
+                <div class="flex items-center gap-2" id="brand-container">
+                    <!-- Default Logo -->
                     <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-white font-bold shadow-lg shadow-sky-200">Z</div>
                     <span class="font-bold text-lg hidden md:block heading-font text-slate-800">Snappy Pro</span>
                 </div>
@@ -253,7 +255,9 @@
                     
                     <div class="flex justify-between items-start mb-6 relative z-10">
                         <div>
-                            <span class="bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2 inline-block border border-white/10">Next Session</span>
+                            <span id="live-badge" class="hidden bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2 animate-pulse border border-white/20">🔴 Live Now</span>
+                            <span id="schedule-badge" class="bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2 inline-block border border-white/10">Next Session</span>
+                            
                             <h2 class="text-2xl font-bold heading-font" id="class-topic">Loading Schedule...</h2>
                             <p class="text-sky-100 text-sm mt-1 flex items-center gap-2" id="class-time-display">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -265,10 +269,16 @@
                         </div>
                     </div>
                     
-                    <button onclick="joinMeet()" class="w-full bg-white text-sky-700 font-bold py-3.5 rounded-xl transition-all hover:bg-sky-50 hover:scale-[1.02] shadow-lg flex items-center justify-center gap-2 relative z-10">
+                    <!-- JOIN BUTTON (Hidden by default) -->
+                    <button id="join-btn" onclick="joinMeet()" class="hidden w-full bg-white text-sky-700 font-bold py-3.5 rounded-xl transition-all hover:bg-sky-50 hover:scale-[1.02] shadow-lg flex items-center justify-center gap-2 relative z-10">
                         Join Class Room
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     </button>
+
+                    <!-- OFFLINE MESSAGE -->
+                    <div id="offline-msg" class="w-full bg-white/20 backdrop-blur-sm border border-white/10 text-white font-medium py-3.5 rounded-xl text-center relative z-10">
+                        ⏳ Waiting for Host to Start...
+                    </div>
                 </div>
 
                 <!-- Stats / Quick Info -->
@@ -497,19 +507,52 @@
         }
 
         function setupListeners(uid) {
-            // 🔴 CONFIG LISTENER (Schedule + Link)
+            // 🔴 CONFIG LISTENER (Schedule + Link + Logo + Status)
             db.collection('system').doc('config').onSnapshot(doc => {
                 if(doc.exists) {
                     const data = doc.data();
                     meetLink = data.meetLink || "#";
                     const topic = data.topic || "General Session";
                     const schedule = data.scheduleTime || "Check back later";
+                    const adminPhoto = data.adminPhoto;
+                    const isLive = data.isLive;
 
-                    // Update UI
+                    // 1. UPDATE LOGO
+                    const brandContainer = document.getElementById('brand-container');
+                    if (adminPhoto) {
+                        brandContainer.innerHTML = `
+                            <img src="${adminPhoto}" class="w-9 h-9 rounded-full border border-sky-100 shadow-sm object-cover">
+                            <span class="font-bold text-lg hidden md:block heading-font text-slate-800">Snappy Pro</span>
+                        `;
+                    } else {
+                        brandContainer.innerHTML = `
+                            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-white font-bold shadow-lg shadow-sky-200">Z</div>
+                            <span class="font-bold text-lg hidden md:block heading-font text-slate-800">Snappy Pro</span>
+                        `;
+                    }
+
+                    // 2. UPDATE CLASS CARD
                     document.getElementById('class-topic').innerText = topic;
                     document.getElementById('schedule-text').innerText = schedule;
 
-                    // NOTIFICATION LOGIC: If link changed while user is already connected
+                    const joinBtn = document.getElementById('join-btn');
+                    const offlineMsg = document.getElementById('offline-msg');
+                    const liveBadge = document.getElementById('live-badge');
+                    const scheduleBadge = document.getElementById('schedule-badge');
+
+                    if (isLive) {
+                        joinBtn.classList.remove('hidden');
+                        offlineMsg.classList.add('hidden');
+                        liveBadge.classList.remove('hidden');
+                        scheduleBadge.classList.add('hidden');
+                    } else {
+                        joinBtn.classList.add('hidden');
+                        offlineMsg.classList.remove('hidden');
+                        liveBadge.classList.add('hidden');
+                        scheduleBadge.classList.remove('hidden');
+                    }
+
+                    // 3. NOTIFICATION LOGIC
                     if(lastLink && lastLink !== meetLink) {
                         const Toast = Swal.mixin({
                             toast: true, position: 'top-end', showConfirmButton: false, timer: 4000, timerProgressBar: true
