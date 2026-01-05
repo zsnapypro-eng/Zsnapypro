@@ -3,157 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Z Snappy Pro | AI Media Engine</title>
-    
+    <title>Z Snappy Pro | Student OS</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Product+Sans:wght@400;700&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <style>
-        :root {
-            --sky-blue: #0ea5e9;
-            --glass-bg: rgba(255, 255, 255, 0.75);
-            --border-white: rgba(255, 255, 255, 0.4);
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f8fafc;
-            background-image: 
-                radial-gradient(at 0% 0%, hsla(199,100%,93%,1) 0, transparent 50%), 
-                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230ea5e9' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2v-4h4v-2H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            color: #0f172a;
-        }
-
-        .google-brand { font-family: 'Space Grotesk', sans-serif; letter-spacing: -1px; }
-
-        .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--border-white);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
-        }
-
-        .hidden-section { display: none !important; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; overflow-x: hidden; }
+        .google-font { font-family: 'Product Sans', sans-serif; }
         
-        /* Table Styles for Admin */
-        .admin-table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; }
-        th { color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; }
+        /* Glassmorphism System */
+        .glass {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* SVG Background Grid */
+        .bg-grid {
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%230ea5e9' fill-opacity='0.05' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E");
+        }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="bg-grid min-h-screen">
 
-    <nav class="max-w-7xl mx-auto px-6 py-8 flex justify-between items-center">
-        <div class="google-brand text-2xl font-bold flex items-center gap-1">
-            <span class="text-blue-500">G</span><span class="text-red-500">o</span><span class="text-yellow-500">o</span><span class="text-blue-500">g</span><span class="text-green-500">l</span><span class="text-red-500">e</span>
-            <span class="ml-2 text-slate-800 font-light border-l pl-3 border-slate-300">Z Snappy Pro</span>
+    <nav class="fixed top-0 w-full z-50 glass border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+            <div class="flex items-center gap-2 google-font text-xl tracking-tight">
+                <span class="text-blue-500 font-bold">G</span><span class="text-red-500 font-bold">o</span><span class="text-yellow-500 font-bold">o</span><span class="text-blue-500 font-bold">g</span><span class="text-green-500 font-bold">l</span><span class="text-red-500 font-bold">e</span>
+                <span class="text-slate-500 ml-2 font-normal">Z Snappy Pro</span>
+            </div>
+            <div id="user-pill" class="hidden flex items-center gap-3 bg-white/50 px-4 py-1.5 rounded-full border border-slate-200">
+                <div id="avatar" class="w-6 h-6 rounded-full bg-slate-300 overflow-hidden"></div>
+                <span id="username" class="text-sm font-medium text-slate-600"></span>
+                <button onclick="logout()" class="text-xs text-red-500 hover:underline ml-2">Exit</button>
+            </div>
         </div>
-        <button id="btn-admin-toggle" onclick="toggleAdminPanel()" class="hidden-section px-4 py-2 bg-slate-800 text-white text-xs font-bold rounded-lg uppercase tracking-wider">
-            Admin Panel
-        </button>
     </nav>
 
-    <main class="max-w-4xl mx-auto px-6 pt-12 pb-24">
-        
-        <div id="admin-panel" class="hidden-section mb-12 glass-panel p-8 rounded-[2rem] border-2 border-slate-200">
-            <h2 class="text-2xl font-bold mb-6 text-slate-800 flex items-center gap-2">
-                <span>🛡️</span> Admin Controls
-            </h2>
-
-            <div class="mb-8 p-6 bg-white/50 rounded-xl border border-slate-200">
-                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Current Meeting Link</label>
-                <div class="flex gap-2">
-                    <input type="text" id="inp-admin-link" class="flex-1 p-3 border rounded-lg font-mono text-sm" placeholder="https://meet.google.com/...">
-                    <button onclick="updateMeetingLink()" class="bg-blue-600 text-white px-6 rounded-lg font-bold text-sm hover:bg-blue-700">Update</button>
-                </div>
+    <div id="broadcast-bar" class="fixed top-16 w-full z-40 bg-indigo-600 text-white transform -translate-y-full transition-transform duration-500 shadow-lg">
+        <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="animate-pulse">🔴</span>
+                <span id="broadcast-msg" class="font-medium"></span>
             </div>
+            <button onclick="closeBroadcast()" class="text-white/80 hover:text-white">&times;</button>
+        </div>
+    </div>
 
-            <div>
-                <div class="flex justify-between items-end mb-4">
-                    <label class="block text-xs font-bold text-slate-500 uppercase">Registered Candidates</label>
-                    <button onclick="fetchCandidates()" class="text-xs text-blue-600 font-bold hover:underline">Refresh List ↻</button>
-                </div>
-                <div class="admin-table-container bg-white rounded-xl border border-slate-200">
-                    <table id="candidates-table">
-                        <thead class="bg-slate-50">
-                            <tr>
-                                <th>Name</th>
-                                <th>Status</th>
-                                <th>Phone</th>
-                                <th>Reg ID</th>
-                            </tr>
-                        </thead>
-                        <tbody id="candidates-body">
-                            <tr><td colspan="4" class="text-center text-slate-400 py-8">Loading data...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+    <main class="pt-24 pb-12 px-6 max-w-7xl mx-auto">
+        
+        <div id="auth-view" class="max-w-md mx-auto mt-20 text-center">
+            <h1 class="text-4xl font-bold text-slate-800 mb-4 tracking-tight">Media Engine <span class="text-sky-500">AI</span></h1>
+            <p class="text-slate-500 mb-8">Secure enterprise access. Identity verification required.</p>
+            <div class="glass-card p-8 rounded-3xl">
+                <button onclick="signIn()" class="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition-all shadow-sm">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/0/google.svg" class="w-5">
+                    Continue with Google
+                </button>
             </div>
         </div>
 
-        <header id="hero" class="text-center mb-12">
-            <h1 class="text-5xl md:text-7xl font-extrabold text-slate-900 mb-6 tracking-tight">Media Engine <span class="text-sky-500">AI</span></h1>
-            <p class="text-xl text-slate-600 max-w-2xl mx-autoLeading-relaxed">Industry-grade AI content creation training with real execution.</p>
-        </header>
-
-        <div id="ui-engine" class="max-w-xl mx-auto">
-            
-            <div id="auth-state" class="glass-panel p-10 rounded-[2rem] text-center">
-                <h3 class="text-2xl font-bold mb-2">Initialize Session</h3>
-                <p class="text-slate-500 mb-8">Identity verification required via Google</p>
-                <button id="btn-google" class="w-full flex items-center justify-center gap-4 bg-white border border-slate-200 p-5 rounded-2xl hover:border-sky-400 transition-all font-bold text-lg">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/0/google.svg" width="24">
-                    Sign in with Google
+        <div id="payment-view" class="hidden max-w-lg mx-auto mt-10 text-center">
+            <div class="glass-card p-10 rounded-3xl relative overflow-hidden">
+                <div id="loading-bar" class="absolute top-0 left-0 h-1 bg-sky-500 transition-all duration-[6000ms] w-0"></div>
+                <h2 class="text-2xl font-bold text-slate-800 mb-6">Initialize Seat</h2>
+                <div class="bg-sky-50 p-6 rounded-2xl border border-sky-100 mb-6">
+                    <p class="text-xs font-bold text-sky-600 uppercase mb-1">Commitment Protocol</p>
+                    <p class="text-4xl font-bold text-slate-900">₹999</p>
+                </div>
+                <button onclick="initiatePayment()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-sky-600 transition-colors shadow-lg shadow-sky-200">
+                    Authorize & Deploy
                 </button>
             </div>
+        </div>
 
-            <div id="reg-state" class="glass-panel p-10 rounded-[2rem] hidden-section">
-                <h3 class="text-2xl font-bold mb-6">Candidate Profiling</h3>
-                <form id="form-main" class="space-y-6">
-                    <input type="tel" id="inp-phone" required class="w-full p-4 border rounded-xl outline-sky-500" placeholder="WhatsApp Number">
-                    <select id="inp-status" class="w-full p-4 border rounded-xl">
-                        <option>Student</option>
-                        <option>Graduate</option>
-                        <option>Working Professional</option>
-                    </select>
-                    <div class="p-6 bg-sky-50 rounded-2xl border border-sky-100 flex justify-between items-center">
-                        <div>
-                            <span class="block text-xs font-bold text-sky-600 uppercase">Commitment Amount</span>
-                            <span class="text-3xl font-black text-slate-900">₹999</span>
-                        </div>
+        <div id="dash-view" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-6">
+            
+            <div class="lg:col-span-1 space-y-6">
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Task Matrix</h3>
+                    <div id="task-list" class="space-y-3">
+                        <div class="text-sm text-slate-400 italic">Syncing daily goals...</div>
                     </div>
-                    <button type="submit" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-bold text-lg hover:bg-sky-600 transition-colors">
-                        Authorize Payment & Deploy
-                    </button>
-                </form>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Resource Node</h3>
+                    <div id="resource-list" class="space-y-2">
+                        </div>
+                </div>
             </div>
 
-            <div id="dash-state" class="glass-panel p-10 rounded-[2rem] hidden-section border-t-4 border-t-green-500">
-                <div class="flex items-center gap-4 mb-8">
-                    <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-2xl">✓</div>
-                    <h3 class="text-xl font-bold">Registration Active</h3>
+            <div class="lg:col-span-2 space-y-6">
+                <div class="glass-card p-8 rounded-3xl bg-gradient-to-br from-white to-sky-50 border-sky-100">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-800">Live Session Node</h2>
+                            <p class="text-slate-500 text-sm mt-1">Status: <span class="text-green-500 font-bold">Active</span></p>
+                        </div>
+                        <div class="w-12 h-12 bg-sky-100 rounded-full flex items-center justify-center text-sky-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        </div>
+                    </div>
+                    <button onclick="joinMeet()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-4 rounded-xl shadow-xl shadow-sky-200 transition-all flex justify-center items-center gap-2">
+                        <span>Launch Google Meet</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                    </button>
+                    <p class="text-center text-xs text-slate-400 mt-4">Auth enforced: Registered ID only</p>
                 </div>
-                <div class="bg-slate-50 p-6 rounded-2xl mb-8">
-                    <span class="text-xs text-slate-400 font-bold uppercase block">Candidate ID</span>
-                    <span id="out-id" class="font-mono font-bold text-sky-600 text-2xl"></span>
+
+                <div class="glass-card p-6 rounded-2xl h-96 flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">My Smart Notes</h3>
+                        <span id="save-status" class="text-xs text-green-500 opacity-0 transition-opacity">Saved</span>
+                    </div>
+                    <textarea id="smart-notes" class="flex-1 w-full bg-slate-50 p-4 rounded-xl border border-slate-200 resize-none outline-none focus:border-sky-400 transition-colors text-slate-700 leading-relaxed" placeholder="Type your thoughts... (Auto-saved)"></textarea>
                 </div>
-                <button onclick="joinSession()" class="w-full p-5 bg-sky-600 text-white rounded-2xl font-bold shadow-lg hover:shadow-sky-200 transition-all">Join Live Session</button>
+            </div>
+
+            <div class="lg:col-span-1 glass-card rounded-2xl flex flex-col h-[85vh] sticky top-24 overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-white/50 backdrop-blur">
+                    <h3 class="font-bold text-slate-700">Elite Circle</h3>
+                    <p class="text-xs text-slate-400">Restricted Community</p>
+                </div>
+                <div id="chat-box" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50">
+                    </div>
+                <div class="p-3 bg-white border-t border-slate-100">
+                    <form onsubmit="sendMessage(event)" class="flex gap-2">
+                        <input id="chat-input" type="text" class="flex-1 bg-slate-100 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 ring-sky-300" placeholder="Message..." autocomplete="off">
+                        <button type="submit" class="bg-slate-900 text-white rounded-lg px-3 hover:bg-sky-600 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                        </button>
+                    </form>
+                </div>
             </div>
 
         </div>
     </main>
 
     <script>
-        // --- 🔴 IMPORTANT: REPLACE THIS WITH YOUR EMAIL TO SEE ADMIN PANEL ---
-        const ADMIN_EMAIL = "zsnapypro@gmail.com"; 
-        // ---------------------------------------------------------------------
-
+        // CONFIGURATION
         const firebaseConfig = {
             apiKey: "AIzaSyAzoGp2rt4CB9e5yazdlK-0G28Dp7TbXtQ",
             authDomain: "zsnapypro-d9d22.firebaseapp.com",
@@ -166,169 +167,230 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        let userProfile = null;
-        
-        // Default link if database is empty
-        let currentMeetingLink = "https://meet.google.com/"; 
+        let currentUser = null;
+        let meetLink = "https://meet.google.com";
 
-        // 1. Initialize & Check Auth
+        // --- 1. AUTH FLOW ---
         auth.onAuthStateChanged(async (user) => {
             if (user) {
-                userProfile = user;
+                currentUser = user;
+                // Check if user exists in DB (meaning fully registered)
+                const doc = await db.collection('students').doc(user.uid).get();
                 
-                // Check if Admin
-                if(user.email === ADMIN_EMAIL) {
-                    document.getElementById('btn-admin-toggle').classList.remove('hidden-section');
-                    fetchCurrentMeetingLink(true); // Fetch link and populate admin input
+                if (doc.exists) {
+                    initDashboard(user, doc.data());
                 } else {
-                    fetchCurrentMeetingLink(false); // Just fetch link for usage
+                    switchView('payment-view');
                 }
-
-                // Check Registration
-                const doc = await db.collection('registrations').doc(user.uid).get();
-                if (doc.exists) renderDashboard(doc.data());
-                else switchUI('reg-state');
             } else {
-                switchUI('auth-state');
+                switchView('auth-view');
             }
         });
 
-        // 2. Fetch the Dynamic Meeting Link
-        function fetchCurrentMeetingLink(isAdmin) {
-            db.collection('settings').doc('globalConfig').onSnapshot((doc) => {
-                if(doc.exists && doc.data().meetingLink) {
-                    currentMeetingLink = doc.data().meetingLink;
-                    // If Admin, update the input box automatically
-                    if(isAdmin) document.getElementById('inp-admin-link').value = currentMeetingLink;
-                }
-            });
+        function signIn() {
+            auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(err => Swal.fire('Error', err.message, 'error'));
         }
 
-        // 3. Admin: Update Link
-        async function updateMeetingLink() {
-            const newLink = document.getElementById('inp-admin-link').value;
-            if(!newLink) return Swal.fire('Error', 'Link cannot be empty', 'error');
-
-            try {
-                await db.collection('settings').doc('globalConfig').set({
-                    meetingLink: newLink,
-                    updatedBy: userProfile.email,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
-                Swal.fire('Success', 'Meeting link updated for all users!', 'success');
-            } catch(e) {
-                Swal.fire('Error', e.message, 'error');
-            }
+        function logout() {
+            auth.signOut().then(() => location.reload());
         }
 
-        // 4. Admin: Fetch Candidates
-        async function fetchCandidates() {
-            const tbody = document.getElementById('candidates-body');
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Loading...</td></tr>';
+        // --- 2. PAYMENT & HANDSHAKE ENGINE ---
+        function initiatePayment() {
+            // UPI Deep Link
+            window.location.href = `upi://pay?pa=monsterprince3641@ibl&pn=ZSnappyPro&am=999.00&cu=INR`;
             
-            try {
-                const snapshot = await db.collection('registrations').orderBy('timestamp', 'desc').get();
-                let html = '';
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    html += `
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="font-bold text-slate-700">${data.name || 'N/A'}</td>
-                            <td><span class="px-2 py-1 bg-slate-100 rounded text-xs font-bold">${data.status}</span></td>
-                            <td class="font-mono text-slate-500">${data.phone}</td>
-                            <td class="text-xs font-mono text-sky-600">${data.registrationID}</td>
-                        </tr>
-                    `;
-                });
-                tbody.innerHTML = html || '<tr><td colspan="4" class="text-center py-4">No candidates yet.</td></tr>';
-            } catch(e) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-red-500 text-center">Error: ${e.message}</td></tr>`;
-            }
-        }
-
-        // UI Logic
-        function toggleAdminPanel() {
-            const panel = document.getElementById('admin-panel');
-            panel.classList.toggle('hidden-section');
-            if(!panel.classList.contains('hidden-section')) {
-                fetchCandidates();
-            }
-        }
-
-        // Existing Logic
-        document.getElementById('btn-google').onclick = () => {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch(e => Swal.fire('Error', e.message, 'error'));
-        };
-
-        document.getElementById('form-main').onsubmit = async (e) => {
-            e.preventDefault();
-            const upiUrl = `upi://pay?pa=monsterprince3641@ibl&pn=ZSnappyPro&am=999.00&cu=INR`;
-            window.location.href = upiUrl;
-
-            Swal.fire({
-                title: 'Deploying Media Engine...',
-                html: 'Syncing with Payment Gateway.<br>Unlock in <b>5</b> seconds.',
-                timer: 5000,
-                timerProgressBar: true,
-                didOpen: () => Swal.showLoading(),
-                allowOutsideClick: false
-            }).then(() => {
+            // UI Feedback
+            const bar = document.getElementById('loading-bar');
+            bar.classList.remove('w-0');
+            bar.classList.add('w-full');
+            
+            // 6 Second Sync Timer
+            setTimeout(() => {
                 Swal.fire({
-                    title: 'Action Required',
-                    text: 'Send payment screenshot to finalize your seat.',
-                    icon: 'success',
-                    confirmButtonText: 'Send Screenshot (WhatsApp)',
-                    confirmButtonColor: '#25D366'
-                }).then((res) => {
-                    if(res.isConfirmed) {
-                        const msg = encodeURIComponent("i have complected registartinon here is cscreenshot");
-                        window.open(`https://wa.me/916205170591?text=${msg}`, '_blank');
+                    title: 'Profile Metadata',
+                    html: `
+                        <input id="swal-name" class="swal2-input" placeholder="Full Name">
+                        <input id="swal-city" class="swal2-input" placeholder="City / Location">
+                    `,
+                    confirmButtonText: 'Finalize Registration',
+                    confirmButtonColor: '#0ea5e9',
+                    allowOutsideClick: false,
+                    preConfirm: () => {
+                        return {
+                            name: document.getElementById('swal-name').value,
+                            city: document.getElementById('swal-city').value
+                        }
                     }
-                    finalizeDeployment();
+                }).then((result) => {
+                    if(result.isConfirmed && result.value.name && result.value.city) {
+                        finalizeRegistration(result.value);
+                    }
                 });
-            });
-        };
+            }, 6000);
+        }
 
-        async function finalizeDeployment() {
-            const regID = `ZSP-AI-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-            const payload = {
-                name: userProfile.displayName,
-                email: userProfile.email,
-                phone: document.getElementById('inp-phone').value,
-                status: document.getElementById('inp-status').value,
-                registrationID: regID,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        async function finalizeRegistration(data) {
+            const uid = currentUser.uid;
+            const profile = {
+                name: data.name,
+                city: data.city,
+                email: currentUser.email,
+                photo: currentUser.photoURL,
+                uid: uid,
+                joinedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
-            await db.collection('registrations').doc(userProfile.uid).set(payload);
-            renderDashboard(payload);
+
+            // Save to DB
+            await db.collection('students').doc(uid).set(profile);
+            
+            // WhatsApp Bridge
+            const msg = `*Z Snappy Pro Activation Request*%0A%0AName: ${data.name}%0ACity: ${data.city}%0AUID: ${uid}%0A%0APayment Completed.`;
+            window.open(`https://wa.me/916205170591?text=${msg}`, '_blank');
+            
+            // Reload to enter dashboard
+            location.reload();
         }
 
-        function renderDashboard(data) {
-            switchUI('dash-state');
-            document.getElementById('out-id').innerText = data.registrationID;
-            window.sessionID = data.registrationID;
+        // --- 3. DASHBOARD LOGIC ---
+        function initDashboard(user, data) {
+            switchView('dash-view');
+            document.getElementById('user-pill').classList.remove('hidden');
+            document.getElementById('user-pill').classList.add('flex');
+            document.getElementById('username').innerText = data.name.split(' ')[0];
+            document.getElementById('avatar').innerHTML = `<img src="${user.photoURL}" class="w-full h-full">`;
+
+            // Listeners
+            setupSystemListeners();
+            setupNotesListener(user.uid);
+            setupChatListener();
         }
 
-        function switchUI(id) {
-            ['auth-state', 'reg-state', 'dash-state'].forEach(s => document.getElementById(s).classList.add('hidden-section'));
-            document.getElementById(id).classList.remove('hidden-section');
-        }
-
-        // Updated Join Session to use Dynamic Link
-        function joinSession() {
-            Swal.fire({
-                title: 'Verify ID',
-                input: 'text',
-                confirmButtonColor: '#0ea5e9'
-            }).then((res) => {
-                if (res.value === window.sessionID) {
-                    // Uses the variable fetched from Firestore
-                    window.open(currentMeetingLink, '_blank');
-                } else if(res.value) {
-                    Swal.fire('Invalid ID', '', 'error');
+        function setupSystemListeners() {
+            // Config Listener (Meeting Link)
+            db.collection('system').doc('config').onSnapshot(doc => {
+                if(doc.exists) {
+                    meetLink = doc.data().meetLink || "https://meet.google.com";
                 }
             });
+
+            // Broadcast Listener
+            db.collection('system').doc('broadcast').onSnapshot(doc => {
+                if(doc.exists && doc.data().active) {
+                    const bar = document.getElementById('broadcast-bar');
+                    document.getElementById('broadcast-msg').innerText = doc.data().message;
+                    bar.classList.remove('-translate-y-full');
+                } else {
+                    document.getElementById('broadcast-bar').classList.add('-translate-y-full');
+                }
+            });
+
+            // Tasks Listener
+            db.collection('system').doc('tasks').onSnapshot(doc => {
+                const list = document.getElementById('task-list');
+                if(doc.exists && doc.data().items) {
+                    list.innerHTML = doc.data().items.map(task => `
+                        <div class="flex items-start gap-3 p-3 bg-white rounded-lg border border-slate-100 hover:shadow-sm transition-shadow">
+                            <input type="checkbox" class="mt-1 accent-sky-500 rounded cursor-pointer">
+                            <span class="text-sm text-slate-700">${task}</span>
+                        </div>
+                    `).join('');
+                }
+            });
+
+            // Resources Listener
+            db.collection('system').doc('resources').onSnapshot(doc => {
+                const list = document.getElementById('resource-list');
+                if(doc.exists && doc.data().items) {
+                    list.innerHTML = doc.data().items.map(res => `
+                        <a href="${res.url}" target="_blank" class="block p-3 bg-white rounded-lg border border-slate-100 hover:border-sky-200 transition-colors group">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-slate-700 group-hover:text-sky-600">${res.label}</span>
+                                <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            </div>
+                        </a>
+                    `).join('');
+                }
+            });
+        }
+
+        // --- 4. NOTES & CHAT ---
+        function setupNotesListener(uid) {
+            const area = document.getElementById('smart-notes');
+            const status = document.getElementById('save-status');
+            let timeout = null;
+
+            // Load initial
+            db.collection('students').doc(uid).collection('private').doc('notes').get().then(doc => {
+                if(doc.exists) area.value = doc.data().content || '';
+            });
+
+            // Auto-save logic
+            area.addEventListener('input', () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    db.collection('students').doc(uid).collection('private').doc('notes').set({
+                        content: area.value,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true }).then(() => {
+                        status.style.opacity = '1';
+                        setTimeout(() => status.style.opacity = '0', 2000);
+                    });
+                }, 1000);
+            });
+        }
+
+        function setupChatListener() {
+            const box = document.getElementById('chat-box');
+            db.collection('chat').orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
+                const messages = [];
+                snap.forEach(doc => messages.push(doc.data()));
+                messages.reverse();
+                
+                box.innerHTML = messages.map(msg => {
+                    const isMe = msg.uid === currentUser.uid;
+                    return `
+                        <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+                            <div class="px-3 py-2 rounded-xl text-sm max-w-[85%] ${isMe ? 'bg-sky-500 text-white rounded-tr-none' : 'bg-white border border-slate-200 text-slate-700 rounded-tl-none'}">
+                                ${msg.text}
+                            </div>
+                            <span class="text-[10px] text-slate-400 mt-1 px-1">${msg.sender}</span>
+                        </div>
+                    `;
+                }).join('');
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+
+        function sendMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if(!text) return;
+
+            db.collection('chat').add({
+                text: text,
+                uid: currentUser.uid,
+                sender: currentUser.displayName.split(' ')[0],
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            input.value = '';
+        }
+
+        // --- UTILS ---
+        function joinMeet() {
+            // Append authuser to force correct account
+            const finalLink = `${meetLink}?authuser=${currentUser.email}`;
+            window.open(finalLink, '_blank');
+        }
+
+        function closeBroadcast() {
+            document.getElementById('broadcast-bar').classList.add('-translate-y-full');
+        }
+
+        function switchView(id) {
+            ['auth-view', 'payment-view', 'dash-view'].forEach(v => document.getElementById(v).classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
         }
     </script>
 </body>
