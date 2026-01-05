@@ -3,158 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Z Snappy Pro | Student OS</title>
+    <title>Command Center | ZSP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Product+Sans:wght@400;700&display=swap" rel="stylesheet">
-    
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; overflow-x: hidden; }
-        .google-font { font-family: 'Product Sans', sans-serif; }
-        
-        /* Glassmorphism System */
-        .glass {
-            background: rgba(255, 255, 255, 0.65);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(226, 232, 240, 0.6);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-
-        /* SVG Background Grid */
-        .bg-grid {
-            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%230ea5e9' fill-opacity='0.05' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E");
-        }
+        body { background: #0f172a; color: #e2e8f0; font-family: sans-serif; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .hide { display: none !important; }
     </style>
 </head>
-<body class="bg-grid min-h-screen">
+<body class="p-6">
 
-    <nav class="fixed top-0 w-full z-50 glass border-b border-slate-200">
-        <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
-            <div class="flex items-center gap-2 google-font text-xl tracking-tight">
-                <span class="text-blue-500 font-bold">G</span><span class="text-red-500 font-bold">o</span><span class="text-yellow-500 font-bold">o</span><span class="text-blue-500 font-bold">g</span><span class="text-green-500 font-bold">l</span><span class="text-red-500 font-bold">e</span>
-                <span class="text-slate-500 ml-2 font-normal">Z Snappy Pro</span>
-            </div>
-            <div id="user-pill" class="hidden flex items-center gap-3 bg-white/50 px-4 py-1.5 rounded-full border border-slate-200">
-                <div id="avatar" class="w-6 h-6 rounded-full bg-slate-300 overflow-hidden"></div>
-                <span id="username" class="text-sm font-medium text-slate-600"></span>
-                <button onclick="logout()" class="text-xs text-red-500 hover:underline ml-2">Exit</button>
-            </div>
-        </div>
-    </nav>
-
-    <div id="broadcast-bar" class="fixed top-16 w-full z-40 bg-indigo-600 text-white transform -translate-y-full transition-transform duration-500 shadow-lg">
-        <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <span class="animate-pulse">🔴</span>
-                <span id="broadcast-msg" class="font-medium"></span>
-            </div>
-            <button onclick="closeBroadcast()" class="text-white/80 hover:text-white">&times;</button>
+    <div id="gate" class="h-screen flex items-center justify-center">
+        <div class="glass p-8 rounded-2xl text-center">
+            <h1 class="text-2xl font-bold mb-4 text-sky-400">Restricted Access</h1>
+            <p class="text-sm text-slate-400 mb-6">Z Snappy Pro Admin Node</p>
+            <button onclick="adminAuth()" class="bg-sky-600 hover:bg-sky-500 text-white px-6 py-2 rounded-lg font-bold">Authenticate</button>
         </div>
     </div>
 
-    <main class="pt-24 pb-12 px-6 max-w-7xl mx-auto">
+    <div id="dashboard" class="hide max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
         
-        <div id="auth-view" class="max-w-md mx-auto mt-20 text-center">
-            <h1 class="text-4xl font-bold text-slate-800 mb-4 tracking-tight">Media Engine <span class="text-sky-500">AI</span></h1>
-            <p class="text-slate-500 mb-8">Secure enterprise access. Identity verification required.</p>
-            <div class="glass-card p-8 rounded-3xl">
-                <button onclick="signIn()" class="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition-all shadow-sm">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/0/google.svg" class="w-5">
-                    Continue with Google
-                </button>
-            </div>
-        </div>
+        <header class="md:col-span-3 flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold text-sky-400 tracking-tighter">ZSP Command Node</h1>
+            <button onclick="firebase.auth().signOut()" class="text-xs text-red-400 uppercase font-bold tracking-widest border border-red-900 px-3 py-1 rounded">Terminate Session</button>
+        </header>
 
-        <div id="payment-view" class="hidden max-w-lg mx-auto mt-10 text-center">
-            <div class="glass-card p-10 rounded-3xl relative overflow-hidden">
-                <div id="loading-bar" class="absolute top-0 left-0 h-1 bg-sky-500 transition-all duration-[6000ms] w-0"></div>
-                <h2 class="text-2xl font-bold text-slate-800 mb-6">Initialize Seat</h2>
-                <div class="bg-sky-50 p-6 rounded-2xl border border-sky-100 mb-6">
-                    <p class="text-xs font-bold text-sky-600 uppercase mb-1">Commitment Protocol</p>
-                    <p class="text-4xl font-bold text-slate-900">₹999</p>
-                </div>
-                <button onclick="initiatePayment()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-sky-600 transition-colors shadow-lg shadow-sky-200">
-                    Authorize & Deploy
-                </button>
-            </div>
-        </div>
-
-        <div id="dash-view" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div class="glass p-6 rounded-2xl space-y-6">
+            <h2 class="text-sm font-bold text-slate-400 uppercase">Signal Controls</h2>
             
-            <div class="lg:col-span-1 space-y-6">
-                <div class="glass-card p-6 rounded-2xl">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Task Matrix</h3>
-                    <div id="task-list" class="space-y-3">
-                        <div class="text-sm text-slate-400 italic">Syncing daily goals...</div>
-                    </div>
-                </div>
-
-                <div class="glass-card p-6 rounded-2xl">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Resource Node</h3>
-                    <div id="resource-list" class="space-y-2">
-                        </div>
+            <div>
+                <label class="text-xs text-sky-300 block mb-1">Meet Link Deployer</label>
+                <div class="flex gap-2">
+                    <input id="inp-link" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-sm w-full font-mono text-white">
+                    <button onclick="updateLink()" class="bg-green-600 px-3 py-1 rounded text-xs font-bold">PUSH</button>
                 </div>
             </div>
 
-            <div class="lg:col-span-2 space-y-6">
-                <div class="glass-card p-8 rounded-3xl bg-gradient-to-br from-white to-sky-50 border-sky-100">
-                    <div class="flex justify-between items-start mb-6">
-                        <div>
-                            <h2 class="text-2xl font-bold text-slate-800">Live Session Node</h2>
-                            <p class="text-slate-500 text-sm mt-1">Status: <span class="text-green-500 font-bold">Active</span></p>
-                        </div>
-                        <div class="w-12 h-12 bg-sky-100 rounded-full flex items-center justify-center text-sky-600">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                        </div>
-                    </div>
-                    <button onclick="joinMeet()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-4 rounded-xl shadow-xl shadow-sky-200 transition-all flex justify-center items-center gap-2">
-                        <span>Launch Google Meet</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                    </button>
-                    <p class="text-center text-xs text-slate-400 mt-4">Auth enforced: Registered ID only</p>
-                </div>
-
-                <div class="glass-card p-6 rounded-2xl h-96 flex flex-col">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">My Smart Notes</h3>
-                        <span id="save-status" class="text-xs text-green-500 opacity-0 transition-opacity">Saved</span>
-                    </div>
-                    <textarea id="smart-notes" class="flex-1 w-full bg-slate-50 p-4 rounded-xl border border-slate-200 resize-none outline-none focus:border-sky-400 transition-colors text-slate-700 leading-relaxed" placeholder="Type your thoughts... (Auto-saved)"></textarea>
+            <div class="border-t border-slate-700 pt-4">
+                <label class="text-xs text-red-300 block mb-1">Emergency Broadcast</label>
+                <textarea id="inp-broadcast" class="bg-slate-900 border border-slate-700 rounded w-full p-2 text-sm mb-2 h-20" placeholder="Global Alert Message..."></textarea>
+                <div class="flex gap-2">
+                    <button onclick="setBroadcast(true)" class="flex-1 bg-red-600 hover:bg-red-500 py-2 rounded text-xs font-bold">DEPLOY SIGNAL</button>
+                    <button onclick="setBroadcast(false)" class="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded text-xs font-bold">KILL SIGNAL</button>
                 </div>
             </div>
-
-            <div class="lg:col-span-1 glass-card rounded-2xl flex flex-col h-[85vh] sticky top-24 overflow-hidden">
-                <div class="p-4 border-b border-slate-100 bg-white/50 backdrop-blur">
-                    <h3 class="font-bold text-slate-700">Elite Circle</h3>
-                    <p class="text-xs text-slate-400">Restricted Community</p>
-                </div>
-                <div id="chat-box" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50">
-                    </div>
-                <div class="p-3 bg-white border-t border-slate-100">
-                    <form onsubmit="sendMessage(event)" class="flex gap-2">
-                        <input id="chat-input" type="text" class="flex-1 bg-slate-100 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 ring-sky-300" placeholder="Message..." autocomplete="off">
-                        <button type="submit" class="bg-slate-900 text-white rounded-lg px-3 hover:bg-sky-600 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                        </button>
-                    </form>
-                </div>
-            </div>
-
         </div>
-    </main>
+
+        <div class="glass p-6 rounded-2xl space-y-6">
+            <h2 class="text-sm font-bold text-slate-400 uppercase">Content Matrix</h2>
+            
+            <div>
+                <label class="text-xs text-sky-300 block mb-1">Daily Tasks (Line separated)</label>
+                <textarea id="inp-tasks" class="bg-slate-900 border border-slate-700 rounded w-full p-2 text-sm h-24 font-mono text-xs"></textarea>
+                <button onclick="updateTasks()" class="w-full bg-blue-600 py-1 rounded text-xs font-bold mt-2">SYNC TASKS</button>
+            </div>
+
+            <div class="border-t border-slate-700 pt-4">
+                <label class="text-xs text-sky-300 block mb-1">Add Resource</label>
+                <input id="res-label" placeholder="Label" class="bg-slate-900 border border-slate-700 rounded w-full mb-2 px-2 py-1 text-xs">
+                <input id="res-url" placeholder="URL" class="bg-slate-900 border border-slate-700 rounded w-full mb-2 px-2 py-1 text-xs">
+                <button onclick="addResource()" class="w-full bg-purple-600 py-1 rounded text-xs font-bold">ADD NODE</button>
+            </div>
+        </div>
+
+        <div class="glass p-6 rounded-2xl flex flex-col h-96">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="text-sm font-bold text-slate-400 uppercase">Elite Circle Spy</h2>
+                <button onclick="clearChat()" class="text-[10px] text-red-400 hover:text-red-300">PURGE LOGS</button>
+            </div>
+            <div id="spy-chat" class="flex-1 bg-slate-900/50 rounded overflow-y-auto p-2 space-y-2 text-xs font-mono">
+                </div>
+        </div>
+
+        <div class="md:col-span-3 glass p-6 rounded-2xl">
+            <h2 class="text-sm font-bold text-slate-400 uppercase mb-4">Registered Agents</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-slate-500 border-b border-slate-700 text-xs uppercase">
+                            <th class="p-2">Name</th>
+                            <th class="p-2">City</th>
+                            <th class="p-2">Email</th>
+                            <th class="p-2">Joined</th>
+                            <th class="p-2 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="student-table" class="text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
 
     <script>
-        // CONFIGURATION
+        // CONFIG
+        const ALLOWED_ADMIN = "zsnapypro@gmail.com";
+        const PASSCODE = "364133";
+        
         const firebaseConfig = {
             apiKey: "AIzaSyAzoGp2rt4CB9e5yazdlK-0G28Dp7TbXtQ",
             authDomain: "zsnapypro-d9d22.firebaseapp.com",
@@ -163,234 +112,128 @@
             messagingSenderId: "614389089654",
             appId: "1:614389089654:web:b4e8d502a8c0e996146657"
         };
-
+        
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
         const db = firebase.firestore();
-        let currentUser = null;
-        let meetLink = "https://meet.google.com";
+        const auth = firebase.auth();
 
-        // --- 1. AUTH FLOW ---
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                currentUser = user;
-                // Check if user exists in DB (meaning fully registered)
-                const doc = await db.collection('students').doc(user.uid).get();
-                
-                if (doc.exists) {
-                    initDashboard(user, doc.data());
-                } else {
-                    switchView('payment-view');
-                }
-            } else {
-                switchView('auth-view');
-            }
-        });
-
-        function signIn() {
-            auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(err => Swal.fire('Error', err.message, 'error'));
-        }
-
-        function logout() {
-            auth.signOut().then(() => location.reload());
-        }
-
-        // --- 2. PAYMENT & HANDSHAKE ENGINE ---
-        function initiatePayment() {
-            // UPI Deep Link
-            window.location.href = `upi://pay?pa=monsterprince3641@ibl&pn=ZSnappyPro&am=999.00&cu=INR`;
-            
-            // UI Feedback
-            const bar = document.getElementById('loading-bar');
-            bar.classList.remove('w-0');
-            bar.classList.add('w-full');
-            
-            // 6 Second Sync Timer
-            setTimeout(() => {
-                Swal.fire({
-                    title: 'Profile Metadata',
-                    html: `
-                        <input id="swal-name" class="swal2-input" placeholder="Full Name">
-                        <input id="swal-city" class="swal2-input" placeholder="City / Location">
-                    `,
-                    confirmButtonText: 'Finalize Registration',
-                    confirmButtonColor: '#0ea5e9',
-                    allowOutsideClick: false,
-                    preConfirm: () => {
-                        return {
-                            name: document.getElementById('swal-name').value,
-                            city: document.getElementById('swal-city').value
+        // AUTH & PASSCODE GATE
+        function adminAuth() {
+            auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then((res) => {
+                if(res.user.email === ALLOWED_ADMIN) {
+                    Swal.fire({
+                        title: 'Security Clearance',
+                        input: 'password',
+                        inputPlaceholder: 'Enter Passcode',
+                        background: '#1e293b',
+                        color: '#fff',
+                        confirmButtonColor: '#0ea5e9',
+                        preConfirm: (val) => {
+                            if(val !== PASSCODE) Swal.showValidationMessage('Access Denied');
                         }
-                    }
-                }).then((result) => {
-                    if(result.isConfirmed && result.value.name && result.value.city) {
-                        finalizeRegistration(result.value);
-                    }
-                });
-            }, 6000);
-        }
-
-        async function finalizeRegistration(data) {
-            const uid = currentUser.uid;
-            const profile = {
-                name: data.name,
-                city: data.city,
-                email: currentUser.email,
-                photo: currentUser.photoURL,
-                uid: uid,
-                joinedAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-
-            // Save to DB
-            await db.collection('students').doc(uid).set(profile);
-            
-            // WhatsApp Bridge
-            const msg = `*Z Snappy Pro Activation Request*%0A%0AName: ${data.name}%0ACity: ${data.city}%0AUID: ${uid}%0A%0APayment Completed.`;
-            window.open(`https://wa.me/916205170591?text=${msg}`, '_blank');
-            
-            // Reload to enter dashboard
-            location.reload();
-        }
-
-        // --- 3. DASHBOARD LOGIC ---
-        function initDashboard(user, data) {
-            switchView('dash-view');
-            document.getElementById('user-pill').classList.remove('hidden');
-            document.getElementById('user-pill').classList.add('flex');
-            document.getElementById('username').innerText = data.name.split(' ')[0];
-            document.getElementById('avatar').innerHTML = `<img src="${user.photoURL}" class="w-full h-full">`;
-
-            // Listeners
-            setupSystemListeners();
-            setupNotesListener(user.uid);
-            setupChatListener();
-        }
-
-        function setupSystemListeners() {
-            // Config Listener (Meeting Link)
-            db.collection('system').doc('config').onSnapshot(doc => {
-                if(doc.exists) {
-                    meetLink = doc.data().meetLink || "https://meet.google.com";
-                }
-            });
-
-            // Broadcast Listener
-            db.collection('system').doc('broadcast').onSnapshot(doc => {
-                if(doc.exists && doc.data().active) {
-                    const bar = document.getElementById('broadcast-bar');
-                    document.getElementById('broadcast-msg').innerText = doc.data().message;
-                    bar.classList.remove('-translate-y-full');
-                } else {
-                    document.getElementById('broadcast-bar').classList.add('-translate-y-full');
-                }
-            });
-
-            // Tasks Listener
-            db.collection('system').doc('tasks').onSnapshot(doc => {
-                const list = document.getElementById('task-list');
-                if(doc.exists && doc.data().items) {
-                    list.innerHTML = doc.data().items.map(task => `
-                        <div class="flex items-start gap-3 p-3 bg-white rounded-lg border border-slate-100 hover:shadow-sm transition-shadow">
-                            <input type="checkbox" class="mt-1 accent-sky-500 rounded cursor-pointer">
-                            <span class="text-sm text-slate-700">${task}</span>
-                        </div>
-                    `).join('');
-                }
-            });
-
-            // Resources Listener
-            db.collection('system').doc('resources').onSnapshot(doc => {
-                const list = document.getElementById('resource-list');
-                if(doc.exists && doc.data().items) {
-                    list.innerHTML = doc.data().items.map(res => `
-                        <a href="${res.url}" target="_blank" class="block p-3 bg-white rounded-lg border border-slate-100 hover:border-sky-200 transition-colors group">
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm font-medium text-slate-700 group-hover:text-sky-600">${res.label}</span>
-                                <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                            </div>
-                        </a>
-                    `).join('');
-                }
-            });
-        }
-
-        // --- 4. NOTES & CHAT ---
-        function setupNotesListener(uid) {
-            const area = document.getElementById('smart-notes');
-            const status = document.getElementById('save-status');
-            let timeout = null;
-
-            // Load initial
-            db.collection('students').doc(uid).collection('private').doc('notes').get().then(doc => {
-                if(doc.exists) area.value = doc.data().content || '';
-            });
-
-            // Auto-save logic
-            area.addEventListener('input', () => {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => {
-                    db.collection('students').doc(uid).collection('private').doc('notes').set({
-                        content: area.value,
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    }, { merge: true }).then(() => {
-                        status.style.opacity = '1';
-                        setTimeout(() => status.style.opacity = '0', 2000);
+                    }).then((result) => {
+                        if(result.isConfirmed) initAdmin();
                     });
-                }, 1000);
+                } else {
+                    Swal.fire('Unauthorized', 'Invalid Identity Protocol', 'error');
+                    auth.signOut();
+                }
             });
         }
 
-        function setupChatListener() {
-            const box = document.getElementById('chat-box');
-            db.collection('chat').orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
-                const messages = [];
-                snap.forEach(doc => messages.push(doc.data()));
-                messages.reverse();
-                
-                box.innerHTML = messages.map(msg => {
-                    const isMe = msg.uid === currentUser.uid;
+        function initAdmin() {
+            document.getElementById('gate').classList.add('hide');
+            document.getElementById('dashboard').classList.remove('hide');
+            loadData();
+        }
+
+        // LOAD DATA
+        function loadData() {
+            // Link
+            db.collection('system').doc('config').get().then(doc => {
+                if(doc.exists) document.getElementById('inp-link').value = doc.data().meetLink || '';
+            });
+
+            // Tasks
+            db.collection('system').doc('tasks').get().then(doc => {
+                if(doc.exists) document.getElementById('inp-tasks').value = (doc.data().items || []).join('\n');
+            });
+
+            // Students
+            db.collection('students').orderBy('joinedAt', 'desc').onSnapshot(snap => {
+                const tbody = document.getElementById('student-table');
+                tbody.innerHTML = snap.docs.map(doc => {
+                    const d = doc.data();
+                    const date = d.joinedAt ? new Date(d.joinedAt.toDate()).toLocaleDateString() : 'N/A';
                     return `
-                        <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
-                            <div class="px-3 py-2 rounded-xl text-sm max-w-[85%] ${isMe ? 'bg-sky-500 text-white rounded-tr-none' : 'bg-white border border-slate-200 text-slate-700 rounded-tl-none'}">
-                                ${msg.text}
-                            </div>
-                            <span class="text-[10px] text-slate-400 mt-1 px-1">${msg.sender}</span>
-                        </div>
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/30">
+                            <td class="p-2 font-bold text-white">${d.name}</td>
+                            <td class="p-2 text-slate-300">${d.city}</td>
+                            <td class="p-2 text-slate-400 font-mono text-xs">${d.email}</td>
+                            <td class="p-2 text-slate-500 text-xs">${date}</td>
+                            <td class="p-2 text-right">
+                                <button onclick="deleteUser('${doc.id}')" class="text-red-500 hover:text-red-400 text-xs font-bold uppercase">Terminate</button>
+                            </td>
+                        </tr>
                     `;
                 }).join('');
-                box.scrollTop = box.scrollHeight;
+            });
+
+            // Spy Chat
+            db.collection('chat').orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
+                const box = document.getElementById('spy-chat');
+                box.innerHTML = snap.docs.map(doc => {
+                    const m = doc.data();
+                    return `<div class="border-b border-slate-800 pb-1 mb-1">
+                        <span class="text-sky-400 font-bold">${m.sender}:</span> <span class="text-slate-300">${m.text}</span>
+                    </div>`;
+                }).join('');
             });
         }
 
-        function sendMessage(e) {
-            e.preventDefault();
-            const input = document.getElementById('chat-input');
-            const text = input.value.trim();
-            if(!text) return;
+        // ACTIONS
+        function updateLink() {
+            const link = document.getElementById('inp-link').value;
+            db.collection('system').doc('config').set({ meetLink: link }, { merge: true });
+            toast('Link Deployed');
+        }
 
-            db.collection('chat').add({
-                text: text,
-                uid: currentUser.uid,
-                sender: currentUser.displayName.split(' ')[0],
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        function setBroadcast(active) {
+            const msg = document.getElementById('inp-broadcast').value;
+            db.collection('system').doc('broadcast').set({ active: active, message: msg });
+            toast(active ? 'Signal Live' : 'Signal Killed');
+        }
+
+        function updateTasks() {
+            const tasks = document.getElementById('inp-tasks').value.split('\n').filter(t => t.trim());
+            db.collection('system').doc('tasks').set({ items: tasks });
+            toast('Tasks Synced');
+        }
+
+        function addResource() {
+            const label = document.getElementById('res-label').value;
+            const url = document.getElementById('res-url').value;
+            if(!label || !url) return;
+            
+            db.collection('system').doc('resources').get().then(doc => {
+                const current = doc.exists ? doc.data().items || [] : [];
+                current.push({ label, url });
+                db.collection('system').doc('resources').set({ items: current });
+                document.getElementById('res-label').value = '';
+                document.getElementById('res-url').value = '';
+                toast('Resource Node Added');
             });
-            input.value = '';
         }
 
-        // --- UTILS ---
-        function joinMeet() {
-            // Append authuser to force correct account
-            const finalLink = `${meetLink}?authuser=${currentUser.email}`;
-            window.open(finalLink, '_blank');
+        function deleteUser(uid) {
+            if(confirm('CONFIRM TERMINATION: This cannot be undone.')) {
+                db.collection('students').doc(uid).delete();
+            }
         }
 
-        function closeBroadcast() {
-            document.getElementById('broadcast-bar').classList.add('-translate-y-full');
-        }
-
-        function switchView(id) {
-            ['auth-view', 'payment-view', 'dash-view'].forEach(v => document.getElementById(v).classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
+        function toast(msg) {
+            const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, timerProgressBar: true });
+            Toast.fire({ icon: 'success', title: msg });
         }
     </script>
 </body>
