@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Z Snappy Pro | AI Media Engine</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --sky-blue: #0ea5e9;
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --border-white: rgba(255, 255, 255, 0.4);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(199,100%,93%,1) 0, transparent 50%), 
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230ea5e9' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2v-4h4v-2H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            color: #0f172a;
+        }
+
+        .google-brand { font-family: 'Space Grotesk', sans-serif; letter-spacing: -1px; }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-white);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+        }
+
+        .hidden-section { display: none; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <nav class="max-w-7xl mx-auto px-6 py-8 flex justify-between items-center">
+        <div class="google-brand text-2xl font-bold flex items-center gap-1">
+            <span class="text-blue-500">G</span><span class="text-red-500">o</span><span class="text-yellow-500">o</span><span class="text-blue-500">g</span><span class="text-green-500">l</span><span class="text-red-500">e</span>
+            <span class="ml-2 text-slate-800 font-light border-l pl-3 border-slate-300">Z Snappy Pro</span>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-6 pt-12 pb-24">
+        <header id="hero" class="text-center mb-12">
+            <h1 class="text-5xl md:text-7xl font-extrabold text-slate-900 mb-6 tracking-tight">Media Engine <span class="text-sky-500">AI</span></h1>
+            <p class="text-xl text-slate-600 max-w-2xl mx-autoLeading-relaxed">Industry-grade AI content creation training with real execution.</p>
+        </header>
+
+        <div id="ui-engine" class="max-w-xl mx-auto">
+            
+            <div id="auth-state" class="glass-panel p-10 rounded-[2rem] text-center">
+                <h3 class="text-2xl font-bold mb-2">Initialize Session</h3>
+                <p class="text-slate-500 mb-8">Identity verification required via Google</p>
+                <button id="btn-google" class="w-full flex items-center justify-center gap-4 bg-white border border-slate-200 p-5 rounded-2xl hover:border-sky-400 transition-all font-bold text-lg">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/0/google.svg" width="24">
+                    Sign in with Google
+                </button>
+            </div>
+
+            <div id="reg-state" class="glass-panel p-10 rounded-[2rem] hidden-section">
+                <h3 class="text-2xl font-bold mb-6">Candidate Profiling</h3>
+                <form id="form-main" class="space-y-6">
+                    <input type="tel" id="inp-phone" required class="w-full p-4 border rounded-xl outline-sky-500" placeholder="WhatsApp Number">
+                    <select id="inp-status" class="w-full p-4 border rounded-xl">
+                        <option>Student</option>
+                        <option>Graduate</option>
+                        <option>Working Professional</option>
+                    </select>
+                    <div class="p-6 bg-sky-50 rounded-2xl border border-sky-100 flex justify-between items-center">
+                        <div>
+                            <span class="block text-xs font-bold text-sky-600 uppercase">Commitment Amount</span>
+                            <span class="text-3xl font-black text-slate-900">₹999</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-bold text-lg hover:bg-sky-600 transition-colors">
+                        Authorize Payment & Deploy
+                    </button>
+                </form>
+            </div>
+
+            <div id="dash-state" class="glass-panel p-10 rounded-[2rem] hidden-section border-t-4 border-t-green-500">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-2xl">✓</div>
+                    <h3 class="text-xl font-bold">Registration Active</h3>
+                </div>
+                <div class="bg-slate-50 p-6 rounded-2xl mb-8">
+                    <span class="text-xs text-slate-400 font-bold uppercase block">Candidate ID</span>
+                    <span id="out-id" class="font-mono font-bold text-sky-600 text-2xl"></span>
+                </div>
+                <button onclick="joinSession()" class="w-full p-5 bg-sky-600 text-white rounded-2xl font-bold">Join Live Session</button>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAzoGp2rt4CB9e5yazdlK-0G28Dp7TbXtQ",
+            authDomain: "zsnapypro-d9d22.firebaseapp.com",
+            projectId: "zsnapypro-d9d22",
+            storageBucket: "zsnapypro-d9d22.firebasestorage.app",
+            messagingSenderId: "614389089654",
+            appId: "1:614389089654:web:b4e8d502a8c0e996146657"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        let userProfile = null;
+
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                userProfile = user;
+                const doc = await db.collection('registrations').doc(user.uid).get();
+                if (doc.exists) renderDashboard(doc.data());
+                else switchUI('reg-state');
+            } else {
+                switchUI('auth-state');
+            }
+        });
+
+        document.getElementById('btn-google').onclick = () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(e => Swal.fire('Error', e.message, 'error'));
+        };
+
+        document.getElementById('form-main').onsubmit = async (e) => {
+            e.preventDefault();
+            const upiUrl = `upi://pay?pa=monsterprince3641@ibl&pn=ZSnappyPro&am=999.00&cu=INR`;
+            window.location.href = upiUrl;
+
+            Swal.fire({
+                title: 'Deploying Media Engine...',
+                html: 'Syncing with Payment Gateway.<br>Unlock in <b>5</b> seconds.',
+                timer: 5000,
+                timerProgressBar: true,
+                didOpen: () => Swal.showLoading(),
+                allowOutsideClick: false
+            }).then(() => {
+                Swal.fire({
+                    title: 'Action Required',
+                    text: 'Send payment screenshot to finalize your seat.',
+                    icon: 'success',
+                    confirmButtonText: 'Send Screenshot (WhatsApp)',
+                    confirmButtonColor: '#25D366'
+                }).then((res) => {
+                    if(res.isConfirmed) {
+                        const msg = encodeURIComponent("i have complected registartinon here is cscreenshot");
+                        window.open(`https://wa.me/916205170591?text=${msg}`, '_blank');
+                    }
+                    finalizeDeployment();
+                });
+            });
+        };
+
+        async function finalizeDeployment() {
+            const regID = `ZSP-AI-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+            const payload = {
+                name: userProfile.displayName,
+                email: userProfile.email,
+                phone: document.getElementById('inp-phone').value,
+                status: document.getElementById('inp-status').value,
+                registrationID: regID,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            await db.collection('registrations').doc(userProfile.uid).set(payload);
+            renderDashboard(payload);
+        }
+
+        function renderDashboard(data) {
+            switchUI('dash-state');
+            document.getElementById('out-id').innerText = data.registrationID;
+            window.sessionID = data.registrationID;
+        }
+
+        function switchUI(id) {
+            ['auth-state', 'reg-state', 'dash-state'].forEach(s => document.getElementById(s).classList.add('hidden-section'));
+            document.getElementById(id).classList.remove('hidden-section');
+        }
+
+        function joinSession() {
+            Swal.fire({
+                title: 'Verify ID',
+                input: 'text',
+                confirmButtonColor: '#0ea5e9'
+            }).then((res) => {
+                if (res.value === window.sessionID) {
+                    window.open('https://meet.google.com/abc-defg-hij', '_blank');
+                } else if(res.value) {
+                    Swal.fire('Invalid ID', '', 'error');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
