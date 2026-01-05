@@ -79,6 +79,11 @@
         .btn-success { background: #22c55e; color: white; }
         .btn-success:hover { background: #16a34a; }
 
+        /* Custom Scrollbar for inner lists */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
         /* Toggle Switch */
         .toggle-checkbox:checked {
             right: 0;
@@ -179,7 +184,7 @@
                         <span id="student-count" class="bg-slate-700 text-xs px-2 py-1 rounded-md text-white">0</span>
                     </div>
                     
-                    <div class="overflow-x-auto max-h-[400px] overflow-y-auto no-scrollbar">
+                    <div class="overflow-x-auto max-h-[400px] overflow-y-auto custom-scrollbar">
                         <table id="student-table">
                             <thead>
                                 <tr>
@@ -224,11 +229,16 @@
 
                     <!-- Add Resource -->
                     <div>
-                        <label class="text-[10px] text-sky-400 uppercase font-bold">Add Resource</label>
+                        <label class="text-[10px] text-sky-400 uppercase font-bold">Resources & Links</label>
                         <div class="space-y-2 mt-1">
                             <input id="res-label" class="input-dark text-xs" placeholder="Label (e.g. PDF Guide)">
                             <input id="res-url" class="input-dark text-xs" placeholder="URL">
                             <button onclick="addResource()" class="btn bg-slate-700 w-full text-xs py-1">Add Link</button>
+                        </div>
+                        
+                        <!-- UPDATED: Resource List Container for Editing -->
+                        <div id="resource-list-container" class="space-y-2 mt-3 max-h-40 overflow-y-auto pr-1 custom-scrollbar bg-slate-800/50 rounded p-2">
+                            <!-- Items injected via JS -->
                         </div>
                     </div>
                 </div>
@@ -249,7 +259,7 @@
                         <h2 class="text-sm font-bold uppercase text-slate-400">🕵️ Chat Monitor</h2>
                         <button onclick="purgeChat()" class="text-[10px] text-red-400 hover:text-red-300">CLEAR ALL</button>
                     </div>
-                    <div id="spy-chat" class="flex-1 bg-black/30 rounded-lg p-3 overflow-y-auto font-mono text-xs space-y-2 border border-slate-700">
+                    <div id="spy-chat" class="flex-1 bg-black/30 rounded-lg p-3 overflow-y-auto font-mono text-xs space-y-2 border border-slate-700 custom-scrollbar">
                         <!-- Chat stream -->
                     </div>
                 </div>
@@ -329,7 +339,33 @@
                 if(doc.exists) document.getElementById('inp-tasks').value = (doc.data().items || []).join('\n');
             });
 
-            // 3. Students
+            // 3. Resources (UPDATED to show list with Edit/Delete)
+            db.collection('system').doc('resources').onSnapshot(doc => {
+                const container = document.getElementById('resource-list-container');
+                if(doc.exists) {
+                    const items = doc.data().items || [];
+                    if(items.length === 0) {
+                        container.innerHTML = '<div class="text-xs text-slate-500 text-center italic">No resources added.</div>';
+                        return;
+                    }
+                    container.innerHTML = items.map((item, index) => `
+                        <div class="flex items-center justify-between bg-slate-900 p-2 rounded text-xs border border-slate-700 hover:border-sky-500/30 transition-colors">
+                            <div class="truncate pr-2 overflow-hidden w-full">
+                                <span class="font-bold text-sky-400 block truncate">${item.label}</span>
+                                <span class="text-slate-500 block truncate text-[10px]">${item.url}</span>
+                            </div>
+                            <div class="flex gap-1 shrink-0">
+                                <button onclick="editResource(${index}, '${item.label.replace(/'/g, "\\'")}', '${item.url.replace(/'/g, "\\'")}')" class="bg-slate-700 hover:bg-sky-600 text-white p-1 rounded transition-colors" title="Edit">✏️</button>
+                                <button onclick="deleteResource(${index})" class="bg-slate-700 hover:bg-red-500 text-white p-1 rounded transition-colors" title="Delete">🗑️</button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div class="text-xs text-slate-500 text-center italic">No resources added.</div>';
+                }
+            });
+
+            // 4. Students
             db.collection('students').orderBy('joinedAt', 'desc').onSnapshot(snap => {
                 document.getElementById('student-count').innerText = snap.size;
                 const tbody = document.querySelector('#student-table tbody');
@@ -350,7 +386,7 @@
                 }).join('');
             });
 
-            // 4. Spy Chat
+            // 5. Spy Chat
             db.collection('chat').orderBy('timestamp', 'desc').limit(30).onSnapshot(snap => {
                 const box = document.getElementById('spy-chat');
                 box.innerHTML = snap.docs.map(doc => {
@@ -397,7 +433,7 @@
                 .then(() => toast(active ? 'Alert Deployed' : 'Alert Cleared'));
         }
 
-        // 4. Content
+        // 4. Content (Tasks & Resources)
         function saveTasks() {
             const tasks = document.getElementById('inp-tasks').value.split('\n').filter(t => t.trim());
             db.collection('system').doc('tasks').set({ items: tasks })
@@ -407,7 +443,7 @@
         function addResource() {
             const label = document.getElementById('res-label').value;
             const url = document.getElementById('res-url').value;
-            if(!label || !url) return;
+            if(!label || !url) return toast('Please enter label and URL');
 
             db.collection('system').doc('resources').get().then(doc => {
                 const current = doc.exists ? doc.data().items || [] : [];
@@ -418,6 +454,68 @@
                         document.getElementById('res-url').value = '';
                         toast('Resource Added');
                     });
+            });
+        }
+
+        // UPDATED: Delete Resource
+        function deleteResource(index) {
+            Swal.fire({
+                title: 'Delete Resource?',
+                text: "This will remove it from all student portals immediately.",
+                icon: 'warning',
+                background: '#1e293b',
+                color: '#fff',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#334155',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    db.collection('system').doc('resources').get().then(doc => {
+                        if (doc.exists) {
+                            const items = doc.data().items || [];
+                            items.splice(index, 1);
+                            db.collection('system').doc('resources').set({ items: items })
+                                .then(() => toast('Resource Deleted'));
+                        }
+                    });
+                }
+            });
+        }
+
+        // UPDATED: Edit Resource
+        function editResource(index, oldLabel, oldUrl) {
+            Swal.fire({
+                title: 'Edit Resource',
+                background: '#1e293b',
+                color: '#fff',
+                html: `
+                    <div class="text-left mb-1"><label class="text-xs uppercase font-bold text-slate-400">Label</label></div>
+                    <input id="edit-res-label" class="input-dark mb-4" value="${oldLabel}">
+                    <div class="text-left mb-1"><label class="text-xs uppercase font-bold text-slate-400">URL</label></div>
+                    <input id="edit-res-url" class="input-dark" value="${oldUrl}">
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Save Changes',
+                confirmButtonColor: '#0ea5e9',
+                cancelButtonColor: '#334155',
+                preConfirm: () => {
+                    return {
+                        label: document.getElementById('edit-res-label').value,
+                        url: document.getElementById('edit-res-url').value
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed && result.value.label && result.value.url) {
+                    db.collection('system').doc('resources').get().then(doc => {
+                        const items = doc.data().items || [];
+                        if (items[index]) {
+                            items[index] = result.value;
+                            db.collection('system').doc('resources').set({ items: items })
+                                .then(() => toast('Resource Updated'));
+                        }
+                    });
+                }
             });
         }
 
