@@ -5,35 +5,101 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Command Center | Z Snappy Pro</title>
     
+    <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <style>
-        :root { --bg-dark: #0f172a; --panel-bg: #1e293b; --border: #334155; --accent: #0ea5e9; }
-        body { background-color: var(--bg-dark); color: #f8fafc; font-family: 'Inter', sans-serif; }
+        /* --- 🎨 ADMIN THEME (Dark & Technical) --- */
+        :root {
+            --bg-dark: #0f172a;
+            --panel-bg: #1e293b;
+            --border: #334155;
+            --accent: #0ea5e9;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+        }
+
         .mono-font { font-family: 'JetBrains Mono', monospace; }
-        .panel { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .input-dark { background: #020617; border: 1px solid var(--border); color: white; padding: 10px 14px; border-radius: 8px; width: 100%; font-size: 14px; transition: all 0.2s; }
-        .input-dark:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2); }
-        .btn { font-weight: 600; padding: 10px 20px; border-radius: 8px; transition: all 0.2s; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; justify-content: center; }
+
+        /* --- 🧩 COMPONENTS --- */
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-dark {
+            background: #020617;
+            border: 1px solid var(--border);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .input-dark:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
+        }
+
+        .btn {
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
         .btn:active { transform: scale(0.98); }
+
         .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: #0284c7; }
+
         .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+
+        .btn-success { background: #22c55e; color: white; }
+        .btn-success:hover { background: #16a34a; }
+
+        /* Custom Scrollbar for inner lists */
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
         /* Toggle Switch */
-        .toggle-checkbox:checked { right: 0; border-color: #22c55e; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #22c55e; }
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #22c55e;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #22c55e;
+        }
+        
+        /* Table Styles */
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 12px; color: #94a3b8; font-size: 12px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
         td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
         tr:hover { background: rgba(255,255,255,0.02); }
+
+        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
         .live-pulse { animation: pulse 2s infinite; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
     </style>
@@ -54,24 +120,34 @@
 
     <!-- 🎛️ DASHBOARD -->
     <div id="dashboard" class="hidden max-w-7xl mx-auto">
+        
+        <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl flex items-center justify-center font-bold text-white">Z</div>
-                <div><h1 class="text-xl font-bold">Z Snappy Pro</h1><p class="text-xs text-slate-400 font-mono">ADMIN_MODE</p></div>
+                <div>
+                    <h1 class="text-xl font-bold">Z Snappy Pro</h1>
+                    <p class="text-xs text-slate-400 font-mono">ADMIN_MODE_ACTIVE</p>
+                </div>
             </div>
             <div class="flex gap-3">
-                <a href="index.html" target="_blank" class="btn bg-slate-800 hover:bg-slate-700 text-white border border-slate-700">Student View</a>
-                <button onclick="logout()" class="btn btn-danger text-xs uppercase tracking-wider">Logout</button>
+                <a href="index.html" target="_blank" class="btn bg-slate-800 hover:bg-slate-700 text-white border border-slate-700">View Student Portal</a>
+                <button onclick="logout()" class="btn btn-danger text-xs uppercase tracking-wider">Terminate Session</button>
             </div>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- 🔴 COLUMN 1 -->
+
+            <!-- 🔴 COLUMN 1: LIVE CLASS & ACCESS -->
             <div class="lg:col-span-2 space-y-6">
-                <!-- 1. LIVE SESSION -->
+                
+                <!-- 1. SESSION CONTROLS -->
                 <div class="panel border-l-4 border-l-sky-500">
                     <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-lg font-bold flex items-center gap-2">Live Session Manager</h2>
+                        <h2 class="text-lg font-bold flex items-center gap-2">
+                            <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            Live Session Manager
+                        </h2>
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-bold uppercase text-slate-400" id="status-label">Offline</span>
                             <div class="relative inline-block w-12 h-6 align-middle select-none">
@@ -80,21 +156,36 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="grid md:grid-cols-2 gap-4 mb-4">
-                        <div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Class Topic</label><input id="inp-topic" class="input-dark"></div>
-                        <div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Time</label><input id="inp-time" class="input-dark"></div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Class Topic</label>
+                            <input id="inp-topic" class="input-dark" placeholder="e.g. Intro to AI Art">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Schedule / Time</label>
+                            <input id="inp-time" class="input-dark" placeholder="e.g. Today at 5:00 PM">
+                        </div>
                     </div>
-                    <div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Link</label>
-                    <div class="flex gap-2"><input id="inp-link" class="input-dark font-mono text-sky-400"><button onclick="updateSessionConfig()" class="btn btn-primary">Update</button></div></div>
+
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Google Meet Link</label>
+                        <div class="flex gap-2">
+                            <input id="inp-link" class="input-dark font-mono text-sky-400" placeholder="https://meet.google.com/...">
+                            <button onclick="updateSessionConfig()" class="btn btn-primary">Update</button>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- 2. ACCESS GENERATOR (NEW) -->
+                <!-- 2. ACCESS MANAGEMENT (NEW) -->
                 <div class="panel border-l-4 border-l-green-500">
-                    <h2 class="text-lg font-bold mb-4">🔑 Access Management</h2>
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <span>🔑</span> Access Management (Manual Registration)
+                    </h2>
                     <div class="grid md:grid-cols-3 gap-4 mb-6">
                         <div class="md:col-span-2">
-                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Student Name</label>
-                            <input id="inp-invite-name" class="input-dark" placeholder="Enter student name">
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Student Name (for tracking)</label>
+                            <input id="inp-invite-name" class="input-dark" placeholder="Enter student name to generate ID">
                         </div>
                         <div class="flex items-end">
                             <button onclick="generateInvite()" class="btn btn-primary w-full h-[42px]">Generate ID</button>
@@ -103,52 +194,111 @@
 
                     <div class="bg-slate-900 rounded-lg border border-slate-700 overflow-hidden">
                         <div class="px-4 py-2 bg-slate-800 border-b border-slate-700 text-xs font-bold text-slate-400 uppercase flex justify-between">
-                            <span>Active Invites</span>
-                            <span onclick="loadInvites()" class="cursor-pointer hover:text-white">Refresh ↻</span>
+                            <span>Active Unused Invites</span>
+                            <span onclick="loadInvites()" class="cursor-pointer hover:text-white transition-colors">Refresh ↻</span>
                         </div>
                         <div id="invite-list" class="max-h-48 overflow-y-auto custom-scrollbar p-2 space-y-2">
                             <!-- Invites injected here -->
+                            <div class="text-center text-xs text-slate-500 py-2">Loading invites...</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- 3. STUDENT DATABASE -->
                 <div class="panel">
-                    <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-bold">Registered Students</h2><span id="student-count" class="bg-slate-700 text-xs px-2 py-1 rounded text-white">0</span></div>
-                    <div class="overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar"><table id="student-table"><thead><tr><th>Name</th><th>City</th><th>ID</th><th class="text-right">Action</th></tr></thead><tbody></tbody></table></div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold">Registered Students</h2>
+                        <span id="student-count" class="bg-slate-700 text-xs px-2 py-1 rounded-md text-white">0</span>
+                    </div>
+                    
+                    <div class="overflow-x-auto max-h-[400px] overflow-y-auto custom-scrollbar">
+                        <table id="student-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>City</th>
+                                    <th>ID</th>
+                                    <th class="text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Rows injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+
             </div>
 
-            <!-- 🔵 COLUMN 2 -->
+            <!-- 🔵 COLUMN 2: TOOLS & SETTINGS -->
             <div class="space-y-6">
-                <!-- BROADCAST -->
+
+                <!-- 4. BROADCAST SYSTEM -->
                 <div class="panel border-t-4 border-t-purple-500">
-                    <h2 class="text-sm font-bold uppercase text-slate-400 mb-3">📢 Broadcast</h2>
-                    <textarea id="inp-broadcast" class="input-dark h-20 resize-none mb-3"></textarea>
-                    <div class="grid grid-cols-2 gap-2"><button onclick="toggleBroadcast(true)" class="btn bg-purple-600 hover:bg-purple-500 text-white text-xs">Deploy</button><button onclick="toggleBroadcast(false)" class="btn bg-slate-700 text-white text-xs">Kill</button></div>
+                    <h2 class="text-sm font-bold uppercase text-slate-400 mb-3">📢 Global Broadcast</h2>
+                    <textarea id="inp-broadcast" class="input-dark h-24 resize-none mb-3" placeholder="Alert message for all students..."></textarea>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="toggleBroadcast(true)" class="btn bg-purple-600 hover:bg-purple-500 text-white text-xs">Deploy Alert</button>
+                        <button onclick="toggleBroadcast(false)" class="btn bg-slate-700 hover:bg-slate-600 text-white text-xs">Kill Alert</button>
+                    </div>
                 </div>
 
-                <!-- CONTENT -->
+                <!-- 5. CONTENT MANAGER -->
                 <div class="panel">
-                    <h2 class="text-sm font-bold uppercase text-slate-400 mb-3">📚 Content</h2>
-                    <textarea id="inp-tasks" class="input-dark h-20 font-mono text-xs mb-2" placeholder="Tasks..."></textarea>
-                    <button onclick="saveTasks()" class="btn bg-slate-700 w-full mb-4 text-xs py-1">Sync Tasks</button>
-                    <label class="text-[10px] text-sky-400 uppercase font-bold">Resources</label>
-                    <div class="space-y-2 mt-1"><input id="res-label" class="input-dark text-xs" placeholder="Label"><input id="res-url" class="input-dark text-xs" placeholder="URL"><button onclick="addResource()" class="btn bg-slate-700 w-full text-xs py-1">Add</button></div>
-                    <div id="resource-list-container" class="space-y-2 mt-3 max-h-40 overflow-y-auto custom-scrollbar bg-slate-800/50 rounded p-2"></div>
+                    <h2 class="text-sm font-bold uppercase text-slate-400 mb-3">📚 Content Manager</h2>
+                    
+                    <!-- Tasks -->
+                    <div class="mb-4">
+                        <label class="text-[10px] text-sky-400 uppercase font-bold">Daily Tasks (Line separated)</label>
+                        <textarea id="inp-tasks" class="input-dark h-20 font-mono text-xs"></textarea>
+                        <button onclick="saveTasks()" class="btn bg-slate-700 w-full mt-2 text-xs py-1">Sync Tasks</button>
+                    </div>
+
+                    <!-- Add Resource -->
+                    <div>
+                        <label class="text-[10px] text-sky-400 uppercase font-bold">Resources & Links</label>
+                        <div class="space-y-2 mt-1">
+                            <input id="res-label" class="input-dark text-xs" placeholder="Label (e.g. PDF Guide)">
+                            <input id="res-url" class="input-dark text-xs" placeholder="URL">
+                            <button onclick="addResource()" class="btn bg-slate-700 w-full text-xs py-1">Add Link</button>
+                        </div>
+                        
+                        <!-- Resource List Container for Editing -->
+                        <div id="resource-list-container" class="space-y-2 mt-3 max-h-40 overflow-y-auto pr-1 custom-scrollbar bg-slate-800/50 rounded p-2">
+                            <!-- Items injected via JS -->
+                        </div>
+                    </div>
                 </div>
 
-                <!-- SETTINGS -->
+                <!-- 6. SETTINGS (Logo) -->
                 <div class="panel">
                     <h2 class="text-sm font-bold uppercase text-slate-400 mb-3">⚙️ Branding</h2>
-                    <div class="flex gap-2"><input id="inp-photo" class="input-dark text-xs" placeholder="Logo URL"><button onclick="saveBranding()" class="btn bg-slate-700 text-xs py-1">Save</button></div>
+                    <label class="text-[10px] text-sky-400 uppercase font-bold">Admin Photo URL (Logo)</label>
+                    <div class="flex gap-2 mt-1">
+                        <input id="inp-photo" class="input-dark text-xs" placeholder="Image URL">
+                        <button onclick="saveBranding()" class="btn bg-slate-700 text-xs py-1">Save</button>
+                    </div>
                 </div>
+
+                <!-- 7. SPY CHAT -->
+                <div class="panel h-[300px] flex flex-col">
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-sm font-bold uppercase text-slate-400">🕵️ Chat Monitor</h2>
+                        <button onclick="purgeChat()" class="text-[10px] text-red-400 hover:text-red-300">CLEAR ALL</button>
+                    </div>
+                    <div id="spy-chat" class="flex-1 bg-black/30 rounded-lg p-3 overflow-y-auto font-mono text-xs space-y-2 border border-slate-700 custom-scrollbar">
+                        <!-- Chat stream -->
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 
     <script>
+        // --- ⚙️ CONFIG (Security) ---
         const ALLOWED_ADMIN = "zsnapypro@gmail.com"; 
+        // 👆 CHANGE THIS to your email if different
         
         const firebaseConfig = {
             apiKey: "AIzaSyAzoGp2rt4CB9e5yazdlK-0G28Dp7TbXtQ",
@@ -163,26 +313,35 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
+        // --- 🔐 AUTH ---
         function adminAuth() {
             auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then((res) => {
-                if(res.user.email === ALLOWED_ADMIN) initAdmin();
-                else { Swal.fire('Access Denied', '', 'error'); auth.signOut(); }
-            });
+                if(res.user.email === ALLOWED_ADMIN) {
+                    initAdmin();
+                } else {
+                    Swal.fire('Access Denied', 'Email not authorized.', 'error');
+                    auth.signOut();
+                }
+            }).catch(e => Swal.fire('Error', e.message, 'error'));
         }
 
         function initAdmin() {
             document.getElementById('gate').classList.add('hidden');
             document.getElementById('dashboard').classList.remove('hidden');
             loadAllData();
-            loadInvites();
+            loadInvites(); // New functionality
         }
-        function logout() { auth.signOut().then(() => location.reload()); }
 
-        // --- INVITE SYSTEM (NEW) ---
+        function logout() {
+            auth.signOut().then(() => location.reload());
+        }
+
+        // --- 🔑 INVITE SYSTEM (NEW) ---
         function generateInvite() {
             const name = document.getElementById('inp-invite-name').value.trim();
-            if(!name) return Swal.fire('Enter Name', '', 'warning');
+            if(!name) return Swal.fire('Error', 'Please enter a student name.', 'warning');
 
+            // Generate unique 4 digit code e.g., ZSP-4821
             const code = 'ZSP-' + Math.floor(1000 + Math.random() * 9000);
             
             db.collection('invites').doc(code).set({
@@ -192,27 +351,37 @@
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
                 document.getElementById('inp-invite-name').value = '';
-                toast(`Generated: ${code}`);
-                loadInvites();
-            });
+                toast(`Generated ID: ${code}`);
+                // Listener will auto-update the list
+            }).catch(e => Swal.fire('Error', e.message, 'error'));
         }
 
         function loadInvites() {
+            // Listen only for 'active' invites
             db.collection('invites').where('status', '==', 'active').orderBy('createdAt', 'desc').onSnapshot(snap => {
                 const list = document.getElementById('invite-list');
+                
                 if(snap.empty) {
-                    list.innerHTML = '<div class="text-xs text-slate-500 text-center p-2">No active invites.</div>';
+                    list.innerHTML = '<div class="text-xs text-slate-500 text-center p-4 italic">No active unused invites.</div>';
                     return;
                 }
+                
                 list.innerHTML = snap.docs.map(doc => {
                     const d = doc.data();
+                    const date = d.createdAt ? new Date(d.createdAt.toDate()).toLocaleTimeString() : 'Just now';
+                    
                     return `
-                        <div class="flex items-center justify-between bg-slate-800 p-2 rounded border border-slate-700">
+                        <div class="flex items-center justify-between bg-slate-800 p-3 rounded-md border border-slate-700 hover:border-sky-500/50 transition-colors">
                             <div>
-                                <span class="text-sky-400 font-bold font-mono block text-sm select-all cursor-pointer" onclick="navigator.clipboard.writeText('${d.code}'); toast('Copied!')">${d.code}</span>
-                                <span class="text-slate-400 text-xs">${d.studentName}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sky-400 font-bold font-mono text-sm tracking-wider select-all cursor-pointer" onclick="navigator.clipboard.writeText('${d.code}'); toast('Copied ID!')" title="Click to Copy">${d.code}</span>
+                                    <span class="text-[10px] bg-slate-700 text-slate-300 px-1 rounded">${date}</span>
+                                </div>
+                                <span class="text-slate-400 text-xs block mt-1">For: <span class="text-white">${d.studentName}</span></span>
                             </div>
-                            <button onclick="deleteInvite('${doc.id}')" class="text-slate-500 hover:text-red-400 text-xs">✕</button>
+                            <button onclick="deleteInvite('${doc.id}')" class="text-slate-500 hover:text-red-400 p-1 transition-colors" title="Revoke ID">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
                         </div>
                     `;
                 }).join('');
@@ -220,81 +389,237 @@
         }
 
         function deleteInvite(id) {
-            if(confirm('Delete this invite code?')) db.collection('invites').doc(id).delete();
+            if(confirm('Revoke this Access ID? The student will not be able to use it.')) {
+                db.collection('invites').doc(id).delete().then(() => toast('ID Revoked'));
+            }
         }
 
-        // --- EXISTING LOGIC ---
+        // --- 📡 DATA LOADING (EXISTING) ---
         function loadAllData() {
+            // 1. Config
             db.collection('system').doc('config').onSnapshot(doc => {
                 if(doc.exists) {
-                    const d = doc.data();
-                    document.getElementById('inp-link').value = d.meetLink || '';
-                    document.getElementById('inp-topic').value = d.topic || '';
-                    document.getElementById('inp-time').value = d.scheduleTime || '';
-                    document.getElementById('inp-photo').value = d.adminPhoto || '';
-                    document.getElementById('live-toggle').checked = d.isLive || false;
-                    const l = document.getElementById('status-label');
-                    if(d.isLive) { l.innerText = "LIVE NOW"; l.className = "text-xs font-bold uppercase text-red-500 live-pulse"; }
-                    else { l.innerText = "Offline"; l.className = "text-xs font-bold uppercase text-slate-400"; }
+                    const data = doc.data();
+                    document.getElementById('inp-link').value = data.meetLink || '';
+                    document.getElementById('inp-topic').value = data.topic || '';
+                    document.getElementById('inp-time').value = data.scheduleTime || '';
+                    document.getElementById('inp-photo').value = data.adminPhoto || '';
+                    
+                    const toggle = document.getElementById('live-toggle');
+                    const label = document.getElementById('status-label');
+                    toggle.checked = data.isLive || false;
+                    
+                    if(data.isLive) {
+                        label.innerText = "LIVE NOW";
+                        label.className = "text-xs font-bold uppercase text-red-500 live-pulse";
+                    } else {
+                        label.innerText = "Offline";
+                        label.className = "text-xs font-bold uppercase text-slate-400";
+                    }
                 }
             });
-            
+
+            // 2. Tasks
+            db.collection('system').doc('tasks').get().then(doc => {
+                if(doc.exists) document.getElementById('inp-tasks').value = (doc.data().items || []).join('\n');
+            });
+
+            // 3. Resources
+            db.collection('system').doc('resources').onSnapshot(doc => {
+                const container = document.getElementById('resource-list-container');
+                if(doc.exists) {
+                    const items = doc.data().items || [];
+                    if(items.length === 0) {
+                        container.innerHTML = '<div class="text-xs text-slate-500 text-center italic">No resources added.</div>';
+                        return;
+                    }
+                    container.innerHTML = items.map((item, index) => `
+                        <div class="flex items-center justify-between bg-slate-900 p-2 rounded text-xs border border-slate-700 hover:border-sky-500/30 transition-colors">
+                            <div class="truncate pr-2 overflow-hidden w-full">
+                                <span class="font-bold text-sky-400 block truncate">${item.label}</span>
+                                <span class="text-slate-500 block truncate text-[10px]">${item.url}</span>
+                            </div>
+                            <div class="flex gap-1 shrink-0">
+                                <button onclick="editResource(${index}, '${item.label.replace(/'/g, "\\'")}', '${item.url.replace(/'/g, "\\'")}')" class="bg-slate-700 hover:bg-sky-600 text-white p-1 rounded transition-colors" title="Edit">✏️</button>
+                                <button onclick="deleteResource(${index})" class="bg-slate-700 hover:bg-red-500 text-white p-1 rounded transition-colors" title="Delete">🗑️</button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div class="text-xs text-slate-500 text-center italic">No resources added.</div>';
+                }
+            });
+
+            // 4. Students (Updated table to show ID)
             db.collection('students').orderBy('joinedAt', 'desc').onSnapshot(snap => {
                 document.getElementById('student-count').innerText = snap.size;
-                document.querySelector('#student-table tbody').innerHTML = snap.docs.map(doc => {
+                const tbody = document.querySelector('#student-table tbody');
+                
+                tbody.innerHTML = snap.docs.map(doc => {
                     const d = doc.data();
-                    return `<tr><td class="font-bold text-white">${d.name}</td><td class="text-slate-400">${d.city}</td><td class="text-xs font-mono text-sky-400">${d.accessCode || '-'}</td><td class="text-right"><button onclick="deleteStudent('${doc.id}')" class="text-red-400 text-xs font-bold">REMOVE</button></td></tr>`;
+                    const date = d.joinedAt ? new Date(d.joinedAt.toDate()).toLocaleDateString() : '-';
+                    // Show Access ID if available, else '-'
+                    const accessId = d.accessCode ? `<span class="font-mono text-sky-400 bg-slate-800 px-1 rounded">${d.accessCode}</span>` : '-';
+                    
+                    return `
+                        <tr>
+                            <td class="font-bold text-white">${d.name}</td>
+                            <td class="text-slate-400">${d.city}</td>
+                            <td class="text-xs text-slate-500">${accessId}</td>
+                            <td class="text-right">
+                                <button onclick="deleteStudent('${doc.id}')" class="text-red-400 hover:text-red-300 text-xs font-bold">REMOVE</button>
+                            </td>
+                        </tr>
+                    `;
                 }).join('');
             });
 
-            // Resources Logic
-            db.collection('system').doc('resources').onSnapshot(doc => {
-                const container = document.getElementById('resource-list-container');
-                if(doc.exists && doc.data().items && doc.data().items.length > 0) {
-                    container.innerHTML = doc.data().items.map((item, index) => `
-                        <div class="flex justify-between bg-slate-900 p-2 rounded text-xs border border-slate-700">
-                            <div class="truncate w-full pr-2"><span class="text-sky-400 font-bold">${item.label}</span></div>
-                            <button onclick="deleteResource(${index})" class="text-slate-500 hover:text-red-400">🗑️</button>
-                        </div>`).join('');
-                } else { container.innerHTML = '<div class="text-center text-xs text-slate-500">No items</div>'; }
+            // 5. Spy Chat
+            db.collection('chat').orderBy('timestamp', 'desc').limit(30).onSnapshot(snap => {
+                const box = document.getElementById('spy-chat');
+                box.innerHTML = snap.docs.map(doc => {
+                    const m = doc.data();
+                    return `<div class="border-b border-slate-700/50 pb-1">
+                        <span class="text-sky-400 font-bold">${m.sender}:</span> <span class="text-slate-300">${m.text}</span>
+                    </div>`;
+                }).join('');
             });
         }
 
+        // --- ⚡ ACTIONS (EXISTING) ---
+
         function updateSessionConfig() {
+            const link = document.getElementById('inp-link').value;
+            const topic = document.getElementById('inp-topic').value;
+            const time = document.getElementById('inp-time').value;
+
             db.collection('system').doc('config').set({
-                meetLink: document.getElementById('inp-link').value,
-                topic: document.getElementById('inp-topic').value,
-                scheduleTime: document.getElementById('inp-time').value
-            }, { merge: true }).then(() => toast('Updated'));
+                meetLink: link,
+                topic: topic,
+                scheduleTime: time
+            }, { merge: true }).then(() => toast('Session Details Updated'));
         }
 
         function toggleLiveStatus() {
-            const s = document.getElementById('live-toggle').checked;
-            db.collection('system').doc('config').set({ isLive: s }, { merge: true });
+            const isLive = document.getElementById('live-toggle').checked;
+            db.collection('system').doc('config').set({ isLive: isLive }, { merge: true })
+                .then(() => toast(isLive ? 'Class is LIVE!' : 'Class Ended'));
         }
-        function saveBranding() { db.collection('system').doc('config').set({ adminPhoto: document.getElementById('inp-photo').value }, { merge: true }); }
-        function toggleBroadcast(a) { db.collection('system').doc('broadcast').set({ active: a, message: document.getElementById('inp-broadcast').value }); }
-        function saveTasks() { db.collection('system').doc('tasks').set({ items: document.getElementById('inp-tasks').value.split('\n').filter(t=>t.trim()) }); }
-        
+
+        function saveBranding() {
+            const photo = document.getElementById('inp-photo').value;
+            db.collection('system').doc('config').set({ adminPhoto: photo }, { merge: true })
+                .then(() => toast('Logo Updated'));
+        }
+
+        function toggleBroadcast(active) {
+            const msg = document.getElementById('inp-broadcast').value;
+            db.collection('system').doc('broadcast').set({ active: active, message: msg })
+                .then(() => toast(active ? 'Alert Deployed' : 'Alert Cleared'));
+        }
+
+        function saveTasks() {
+            const tasks = document.getElementById('inp-tasks').value.split('\n').filter(t => t.trim());
+            db.collection('system').doc('tasks').set({ items: tasks })
+                .then(() => toast('Tasks Synced'));
+        }
+
         function addResource() {
-            const l = document.getElementById('res-label').value, u = document.getElementById('res-url').value;
-            if(!l||!u) return;
+            const label = document.getElementById('res-label').value;
+            const url = document.getElementById('res-url').value;
+            if(!label || !url) return toast('Please enter label and URL');
+
             db.collection('system').doc('resources').get().then(doc => {
-                const c = doc.exists ? doc.data().items || [] : [];
-                c.push({label:l, url:u});
-                db.collection('system').doc('resources').set({items:c}).then(()=>{
-                     document.getElementById('res-label').value=''; document.getElementById('res-url').value='';
+                const current = doc.exists ? doc.data().items || [] : [];
+                current.push({ label, url });
+                db.collection('system').doc('resources').set({ items: current })
+                    .then(() => {
+                        document.getElementById('res-label').value = '';
+                        document.getElementById('res-url').value = '';
+                        toast('Resource Added');
+                    });
+            });
+        }
+
+        function deleteResource(index) {
+            Swal.fire({
+                title: 'Delete Resource?',
+                text: "This will remove it from all student portals immediately.",
+                icon: 'warning',
+                background: '#1e293b',
+                color: '#fff',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#334155',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    db.collection('system').doc('resources').get().then(doc => {
+                        if (doc.exists) {
+                            const items = doc.data().items || [];
+                            items.splice(index, 1);
+                            db.collection('system').doc('resources').set({ items: items })
+                                .then(() => toast('Resource Deleted'));
+                        }
+                    });
+                }
+            });
+        }
+
+        function editResource(index, oldLabel, oldUrl) {
+            Swal.fire({
+                title: 'Edit Resource',
+                background: '#1e293b',
+                color: '#fff',
+                html: `
+                    <div class="text-left mb-1"><label class="text-xs uppercase font-bold text-slate-400">Label</label></div>
+                    <input id="edit-res-label" class="input-dark mb-4" value="${oldLabel}">
+                    <div class="text-left mb-1"><label class="text-xs uppercase font-bold text-slate-400">URL</label></div>
+                    <input id="edit-res-url" class="input-dark" value="${oldUrl}">
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Save Changes',
+                confirmButtonColor: '#0ea5e9',
+                cancelButtonColor: '#334155',
+                preConfirm: () => {
+                    return {
+                        label: document.getElementById('edit-res-label').value,
+                        url: document.getElementById('edit-res-url').value
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed && result.value.label && result.value.url) {
+                    db.collection('system').doc('resources').get().then(doc => {
+                        const items = doc.data().items || [];
+                        if (items[index]) {
+                            items[index] = result.value;
+                            db.collection('system').doc('resources').set({ items: items })
+                                .then(() => toast('Resource Updated'));
+                        }
+                    });
+                }
+            });
+        }
+
+        function deleteStudent(uid) {
+            if(confirm('Are you sure you want to remove this student?')) {
+                db.collection('students').doc(uid).delete().then(() => toast('Student Removed'));
+            }
+        }
+
+        function purgeChat() {
+            if(confirm('Delete all chat messages?')) {
+                db.collection('chat').get().then(snap => {
+                    snap.forEach(doc => doc.ref.delete());
+                    toast('Chat Logs Purged');
                 });
-            });
+            }
         }
-        function deleteResource(i) {
-             db.collection('system').doc('resources').get().then(doc => {
-                const c = doc.data().items; c.splice(i,1);
-                db.collection('system').doc('resources').set({items:c});
-            });
+
+        function toast(msg) {
+            const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true });
+            Toast.fire({ icon: 'success', title: msg });
         }
-        function deleteStudent(uid) { if(confirm('Remove student?')) db.collection('students').doc(uid).delete(); }
-        function toast(msg) { Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: msg }); }
     </script>
 </body>
 </html>
