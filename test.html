@@ -161,7 +161,7 @@
         </button>
     </div>
 
-    <!-- 🔑 2. ACCESS ID VERIFICATION (REPLACES PAYMENT) -->
+    <!-- 🔑 2. ACCESS ID VERIFICATION (STRICT MODE) -->
     <div id="verify-view" class="hidden h-screen flex flex-col items-center justify-center p-6 text-center bg-sky-50">
         <div class="card w-full max-w-sm bg-white border-2 border-sky-100 shadow-xl">
             <div class="flex justify-between items-center mb-6">
@@ -189,7 +189,7 @@
                 </button>
             </div>
             <p class="text-[10px] text-slate-400 mt-4 text-center">
-                This ID will be permanently locked to your Google Account.
+                🔒 Security: This ID will be permanently locked to your Google Account.
             </p>
         </div>
     </div>
@@ -436,7 +436,7 @@
             auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(err => Swal.fire('Error', err.message, 'error'));
         }
 
-        // --- 🔑 NEW VERIFICATION LOGIC (ACCESS ID) ---
+        // --- 🔑 NEW VERIFICATION LOGIC (STRICT BINDING) ---
         async function verifyAccess() {
             const code = document.getElementById('inp-access-id').value.trim().toUpperCase();
             const city = document.getElementById('inp-city').value.trim();
@@ -455,41 +455,63 @@
                 }
 
                 const inviteData = inviteSnap.data();
-                if (inviteData.status !== 'active') {
-                    throw new Error('This ID has already been used.');
+
+                // CASE A: New/Active Invite -> Bind to this Account
+                if (inviteData.status === 'active') {
+                    const batch = db.batch();
+                    
+                    // Create Student Profile
+                    const studentRef = db.collection('students').doc(currentUser.uid);
+                    batch.set(studentRef, {
+                        name: inviteData.studentName, // Use name from Admin's invite
+                        city: city,
+                        email: currentUser.email,
+                        photo: currentUser.photoURL,
+                        uid: currentUser.uid,
+                        accessCode: code,
+                        joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    // Mark Invite Used & Bind to UID
+                    batch.update(inviteRef, { 
+                        status: 'used', 
+                        usedBy: currentUser.uid,
+                        usedByEmail: currentUser.email, // Store email for helpful error messages
+                        usedAt: firebase.firestore.FieldValue.serverTimestamp() 
+                    });
+
+                    await batch.commit();
+
+                    Swal.fire({
+                        title: 'Welcome!',
+                        text: 'Access Granted Successfully.',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                    return;
                 }
 
-                // 2. Atomic Transaction: Create Student Profile & Mark Invite as Used
-                const batch = db.batch();
-                
-                // Create Student Profile
-                const studentRef = db.collection('students').doc(currentUser.uid);
-                batch.set(studentRef, {
-                    name: inviteData.studentName, // Use name from Admin's invite
-                    city: city,
-                    email: currentUser.email,
-                    photo: currentUser.photoURL,
-                    uid: currentUser.uid,
-                    accessCode: code,
-                    joinedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                // Mark Invite Used
-                batch.update(inviteRef, { 
-                    status: 'used', 
-                    usedBy: currentUser.uid,
-                    usedAt: firebase.firestore.FieldValue.serverTimestamp() 
-                });
-
-                await batch.commit();
-
-                Swal.fire({
-                    title: 'Welcome!',
-                    text: 'Access Granted Successfully.',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                }).then(() => location.reload());
+                // CASE B: Already Used -> Check if it belongs to THIS user
+                if (inviteData.status === 'used') {
+                    if (inviteData.usedBy === currentUser.uid) {
+                        // User owns this code (maybe app data cleared). Restore access.
+                        await db.collection('students').doc(currentUser.uid).set({
+                            name: inviteData.studentName,
+                            city: city,
+                            email: currentUser.email,
+                            photo: currentUser.photoURL,
+                            uid: currentUser.uid,
+                            accessCode: code,
+                            joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
+                        
+                        Swal.fire('Welcome Back', 'Access restored successfully.', 'success').then(() => location.reload());
+                    } else {
+                        // User does NOT own this code (SECURITY BLOCK)
+                        throw new Error(`This Access ID is already linked to a different Google Account. Please log in with the correct account.`);
+                    }
+                }
 
             } catch (error) {
                 Swal.fire('Verification Failed', error.message, 'error');
