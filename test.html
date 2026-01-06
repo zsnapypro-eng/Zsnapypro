@@ -2,297 +2,154 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Z Snappy Pro | Student App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Command Center | Z Snappy Pro</title>
     
-    <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <style>
-        /* --- 🎨 APP THEME (Sky Blue & Black) --- */
-        :root {
-            --app-bg: #0f172a;
-            --card-bg: #1e293b;
-            --primary: #0ea5e9; /* Sky Blue */
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--app-bg);
-            color: var(--text-main);
-            overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        /* --- 📱 APP LAYOUT UTILITIES --- */
-        .app-container {
-            max-width: 1024px;
-            margin: 0 auto;
-            padding-bottom: 80px; /* Space for bottom nav */
-        }
-
-        /* Hide Scrollbar but allow scrolling */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Mobile Bottom Nav */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(12px);
-            border-top: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            justify-content: space-around;
-            padding: 12px 0;
-            z-index: 50;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 10px;
-            color: var(--text-muted);
-            transition: color 0.3s;
-            cursor: pointer;
-        }
-
-        .nav-item.active { color: var(--primary); }
-        .nav-item svg { width: 24px; height: 24px; margin-bottom: 4px; }
-
-        /* Desktop Nav overrides */
-        @media (min-width: 768px) {
-            .bottom-nav { display: none; }
-            .app-container { padding-bottom: 20px; }
-        }
-
-        /* --- 🧩 COMPONENTS --- */
-        .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-            border: 1px solid rgba(255,255,255,0.05);
-            margin-bottom: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            font-weight: 600;
-            padding: 12px 20px;
-            border-radius: 12px;
-            text-align: center;
-            transition: opacity 0.2s;
-            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
-        }
-        .btn-primary:active { opacity: 0.8; transform: scale(0.98); }
-
-        /* Input styling */
-        input, textarea, select {
-            background: #020617;
-            border: 1px solid #334155;
-            color: white !important;
-            border-radius: 12px;
-        }
-        ::placeholder { color: #64748b; }
-        
-        /* View transitions */
-        .tab-view { display: none; animation: fadeIn 0.3s ease; }
-        .tab-view.active { display: block; }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        :root { --bg-dark: #0f172a; --panel-bg: #1e293b; --border: #334155; --accent: #0ea5e9; }
+        body { background-color: var(--bg-dark); color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .mono-font { font-family: 'JetBrains Mono', monospace; }
+        .panel { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .input-dark { background: #020617; border: 1px solid var(--border); color: white; padding: 10px 14px; border-radius: 8px; width: 100%; font-size: 14px; transition: all 0.2s; }
+        .input-dark:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2); }
+        .btn { font-weight: 600; padding: 10px 20px; border-radius: 8px; transition: all 0.2s; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; justify-content: center; }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        /* Toggle Switch */
+        .toggle-checkbox:checked { right: 0; border-color: #22c55e; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #22c55e; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; color: #94a3b8; font-size: 12px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        tr:hover { background: rgba(255,255,255,0.02); }
+        .live-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen p-6">
 
-    <!-- 🔒 1. LOGIN SCREEN -->
-    <div id="auth-view" class="h-screen flex flex-col items-center justify-center p-6 text-center">
-        <div class="w-16 h-16 bg-sky-500/10 rounded-2xl flex items-center justify-center mb-6 border border-sky-500/20">
-            <span class="text-3xl">🚀</span>
-        </div>
-        <h1 class="text-3xl font-bold mb-2">Welcome to Z Snappy</h1>
-        <p class="text-slate-400 mb-8 max-w-xs">Your personal AI learning portal. Sign in to continue.</p>
-        
-        <button onclick="signIn()" class="w-full max-w-sm bg-white text-slate-900 font-bold py-3.5 rounded-xl flex items-center justify-center gap-3 hover:bg-slate-100 transition-colors">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/0/google.svg" class="w-5">
-            Sign in with Google
-        </button>
-    </div>
-
-    <!-- 💳 2. REGISTRATION SCREEN -->
-    <div id="payment-view" class="hidden h-screen flex flex-col items-center justify-center p-6 text-center">
-        <div class="card w-full max-w-sm">
-            <div id="loading-bar" class="h-1 bg-sky-500 w-0 transition-all duration-[6000ms] rounded-full mb-6"></div>
-            
-            <h2 class="text-2xl font-bold mb-2">Complete Registration</h2>
-            <p class="text-slate-400 text-sm mb-6">Unlock full access to the course material.</p>
-            
-            <div class="bg-slate-900 p-4 rounded-xl mb-6 flex justify-between items-center border border-slate-700">
-                <span class="text-sm font-medium text-slate-400">Total Amount</span>
-                <span class="text-2xl font-bold text-white">₹999</span>
+    <!-- 🔒 SECURITY GATE -->
+    <div id="gate" class="fixed inset-0 bg-slate-900 flex items-center justify-center z-50">
+        <div class="panel max-w-md w-full text-center">
+            <div class="w-16 h-16 bg-slate-800 rounded-2xl mx-auto flex items-center justify-center mb-6 border border-slate-700">
+                <span class="text-3xl">🛡️</span>
             </div>
-
-            <button onclick="initiatePayment()" class="btn-primary w-full flex items-center justify-center gap-2">
-                <span>Pay Now</span>
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-            </button>
+            <h1 class="text-2xl font-bold mb-2">Command Center</h1>
+            <p class="text-slate-400 mb-6 text-sm">Restricted Access Protocol</p>
+            <button onclick="adminAuth()" class="btn btn-primary w-full py-3">Authenticate Identity</button>
         </div>
     </div>
 
-    <!-- 📱 3. MAIN APP SHELL -->
-    <div id="app-shell" class="hidden min-h-screen">
-        
-        <!-- Top Header (Desktop & Mobile) -->
-        <header class="bg-slate-900/80 backdrop-blur border-b border-slate-800 sticky top-0 z-40">
-            <div class="max-w-5xl mx-auto px-4 h-16 flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center text-white font-bold">Z</div>
-                    <span class="font-bold text-lg hidden md:block">Snappy Pro</span>
-                </div>
-                
-                <!-- Desktop Nav -->
-                <nav class="hidden md:flex gap-6 text-sm font-medium text-slate-400">
-                    <button onclick="switchTab('home')" class="hover:text-sky-400 transition-colors">Home</button>
-                    <button onclick="switchTab('work')" class="hover:text-sky-400 transition-colors">Work</button>
-                    <button onclick="switchTab('chat')" class="hover:text-sky-400 transition-colors">Chat</button>
-                </nav>
-
-                <!-- User Profile -->
-                <div class="flex items-center gap-3">
-                    <div class="text-right hidden sm:block">
-                        <div id="username" class="text-xs font-bold text-white">User</div>
-                        <div class="text-[10px] text-green-400">Online</div>
-                    </div>
-                    <div id="avatar" class="w-8 h-8 rounded-full bg-slate-700 overflow-hidden border border-slate-600"></div>
-                </div>
+    <!-- 🎛️ DASHBOARD -->
+    <div id="dashboard" class="hidden max-w-7xl mx-auto">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl flex items-center justify-center font-bold text-white">Z</div>
+                <div><h1 class="text-xl font-bold">Z Snappy Pro</h1><p class="text-xs text-slate-400 font-mono">ADMIN_MODE</p></div>
+            </div>
+            <div class="flex gap-3">
+                <a href="index.html" target="_blank" class="btn bg-slate-800 hover:bg-slate-700 text-white border border-slate-700">Student View</a>
+                <button onclick="logout()" class="btn btn-danger text-xs uppercase tracking-wider">Logout</button>
             </div>
         </header>
 
-        <!-- Broadcast Alert -->
-        <div id="broadcast-bar" class="hidden bg-indigo-600 text-white px-4 py-2 text-sm flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <span class="w-2 h-2 bg-red-400 rounded-full animate-pulse"></span>
-                <span id="broadcast-msg"></span>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- 🔴 COLUMN 1 -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- 1. LIVE SESSION -->
+                <div class="panel border-l-4 border-l-sky-500">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-lg font-bold flex items-center gap-2">Live Session Manager</h2>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold uppercase text-slate-400" id="status-label">Offline</span>
+                            <div class="relative inline-block w-12 h-6 align-middle select-none">
+                                <input type="checkbox" id="live-toggle" onclick="toggleLiveStatus()" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 left-0 border-slate-600"/>
+                                <label for="live-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-700 cursor-pointer transition-all duration-300"></label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4 mb-4">
+                        <div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Class Topic</label><input id="inp-topic" class="input-dark"></div>
+                        <div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Time</label><input id="inp-time" class="input-dark"></div>
+                    </div>
+                    <div><label class="block text-xs font-bold text-slate-400 uppercase mb-1">Link</label>
+                    <div class="flex gap-2"><input id="inp-link" class="input-dark font-mono text-sky-400"><button onclick="updateSessionConfig()" class="btn btn-primary">Update</button></div></div>
+                </div>
+
+                <!-- 2. ACCESS GENERATOR (NEW) -->
+                <div class="panel border-l-4 border-l-green-500">
+                    <h2 class="text-lg font-bold mb-4">🔑 Access Management</h2>
+                    <div class="grid md:grid-cols-3 gap-4 mb-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Student Name</label>
+                            <input id="inp-invite-name" class="input-dark" placeholder="Enter student name">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="generateInvite()" class="btn btn-primary w-full h-[42px]">Generate ID</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 rounded-lg border border-slate-700 overflow-hidden">
+                        <div class="px-4 py-2 bg-slate-800 border-b border-slate-700 text-xs font-bold text-slate-400 uppercase flex justify-between">
+                            <span>Active Invites</span>
+                            <span onclick="loadInvites()" class="cursor-pointer hover:text-white">Refresh ↻</span>
+                        </div>
+                        <div id="invite-list" class="max-h-48 overflow-y-auto custom-scrollbar p-2 space-y-2">
+                            <!-- Invites injected here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. STUDENT DATABASE -->
+                <div class="panel">
+                    <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-bold">Registered Students</h2><span id="student-count" class="bg-slate-700 text-xs px-2 py-1 rounded text-white">0</span></div>
+                    <div class="overflow-x-auto max-h-[300px] overflow-y-auto custom-scrollbar"><table id="student-table"><thead><tr><th>Name</th><th>City</th><th>ID</th><th class="text-right">Action</th></tr></thead><tbody></tbody></table></div>
+                </div>
             </div>
-            <button onclick="this.parentElement.style.display='none'">&times;</button>
+
+            <!-- 🔵 COLUMN 2 -->
+            <div class="space-y-6">
+                <!-- BROADCAST -->
+                <div class="panel border-t-4 border-t-purple-500">
+                    <h2 class="text-sm font-bold uppercase text-slate-400 mb-3">📢 Broadcast</h2>
+                    <textarea id="inp-broadcast" class="input-dark h-20 resize-none mb-3"></textarea>
+                    <div class="grid grid-cols-2 gap-2"><button onclick="toggleBroadcast(true)" class="btn bg-purple-600 hover:bg-purple-500 text-white text-xs">Deploy</button><button onclick="toggleBroadcast(false)" class="btn bg-slate-700 text-white text-xs">Kill</button></div>
+                </div>
+
+                <!-- CONTENT -->
+                <div class="panel">
+                    <h2 class="text-sm font-bold uppercase text-slate-400 mb-3">📚 Content</h2>
+                    <textarea id="inp-tasks" class="input-dark h-20 font-mono text-xs mb-2" placeholder="Tasks..."></textarea>
+                    <button onclick="saveTasks()" class="btn bg-slate-700 w-full mb-4 text-xs py-1">Sync Tasks</button>
+                    <label class="text-[10px] text-sky-400 uppercase font-bold">Resources</label>
+                    <div class="space-y-2 mt-1"><input id="res-label" class="input-dark text-xs" placeholder="Label"><input id="res-url" class="input-dark text-xs" placeholder="URL"><button onclick="addResource()" class="btn bg-slate-700 w-full text-xs py-1">Add</button></div>
+                    <div id="resource-list-container" class="space-y-2 mt-3 max-h-40 overflow-y-auto custom-scrollbar bg-slate-800/50 rounded p-2"></div>
+                </div>
+
+                <!-- SETTINGS -->
+                <div class="panel">
+                    <h2 class="text-sm font-bold uppercase text-slate-400 mb-3">⚙️ Branding</h2>
+                    <div class="flex gap-2"><input id="inp-photo" class="input-dark text-xs" placeholder="Logo URL"><button onclick="saveBranding()" class="btn bg-slate-700 text-xs py-1">Save</button></div>
+                </div>
+            </div>
         </div>
-
-        <!-- Scrollable Content Area -->
-        <div class="app-container p-4">
-            
-            <!-- 🏠 TAB: HOME -->
-            <div id="tab-home" class="tab-view active">
-                <!-- Live Class Card -->
-                <div class="card bg-gradient-to-br from-slate-800 to-slate-900 border-sky-500/30">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h2 class="text-xl font-bold text-white">Live Class</h2>
-                            <p class="text-slate-400 text-sm">Batch 2026</p>
-                        </div>
-                        <span class="bg-red-500/20 text-red-400 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider animate-pulse">Live</span>
-                    </div>
-                    <button onclick="joinMeet()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                        Join Class Now
-                    </button>
-                </div>
-
-                <!-- Quick Notes -->
-                <div class="card h-[400px] flex flex-col">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="font-bold text-slate-200">Personal Notes</h3>
-                        <span id="save-status" class="text-[10px] text-green-400 opacity-0 transition-opacity">Saved</span>
-                    </div>
-                    <textarea id="smart-notes" class="flex-1 w-full bg-black/30 p-4 rounded-xl resize-none outline-none focus:ring-1 focus:ring-sky-500 text-sm leading-relaxed" placeholder="Type your notes here..."></textarea>
-                </div>
-            </div>
-
-            <!-- 💼 TAB: WORK (Tasks & Resources) -->
-            <div id="tab-work" class="tab-view">
-                <div class="grid md:grid-cols-2 gap-4">
-                    <!-- Tasks -->
-                    <div class="card">
-                        <h3 class="font-bold text-slate-200 mb-4 flex items-center gap-2">
-                            <span class="bg-sky-500/20 text-sky-400 p-1 rounded">✓</span> To-Do List
-                        </h3>
-                        <div id="task-list" class="space-y-3">
-                            <p class="text-xs text-slate-500 italic">Loading tasks...</p>
-                        </div>
-                    </div>
-
-                    <!-- Resources -->
-                    <div class="card">
-                        <h3 class="font-bold text-slate-200 mb-4 flex items-center gap-2">
-                            <span class="bg-purple-500/20 text-purple-400 p-1 rounded">📚</span> Learning Material
-                        </h3>
-                        <div id="resource-list" class="space-y-2">
-                            <p class="text-xs text-slate-500 italic">Loading resources...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 💬 TAB: CHAT -->
-            <div id="tab-chat" class="tab-view">
-                <div class="card flex flex-col h-[calc(100vh-180px)] md:h-[600px] p-0 overflow-hidden">
-                    <div class="p-4 border-b border-slate-700 bg-slate-800/50">
-                        <h3 class="font-bold text-white">Class Group Chat</h3>
-                        <p class="text-xs text-slate-400">Talk with your batchmates</p>
-                    </div>
-                    
-                    <div id="chat-box" class="flex-1 overflow-y-auto p-4 space-y-4 bg-black/20">
-                        <!-- Messages go here -->
-                    </div>
-
-                    <div class="p-3 bg-slate-800 border-t border-slate-700">
-                        <form onsubmit="sendMessage(event)" class="flex gap-2">
-                            <input id="chat-input" type="text" class="flex-1 bg-slate-900 px-4 py-3 text-sm focus:ring-1 focus:ring-sky-500" placeholder="Type a message..." autocomplete="off">
-                            <button type="submit" class="bg-sky-600 text-white p-3 rounded-xl hover:bg-sky-500">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- 📱 Mobile Bottom Navigation -->
-        <nav class="bottom-nav">
-            <div class="nav-item active" onclick="switchTab('home')" id="nav-home">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                <span>Home</span>
-            </div>
-            <div class="nav-item" onclick="switchTab('work')" id="nav-work">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                <span>Work</span>
-            </div>
-            <div class="nav-item" onclick="switchTab('chat')" id="nav-chat">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                <span>Chat</span>
-            </div>
-        </nav>
-
     </div>
 
     <script>
-        // --- ⚙️ FIREBASE CONFIG ---
+        const ALLOWED_ADMIN = "zsnapypro@gmail.com"; 
+        
         const firebaseConfig = {
             apiKey: "AIzaSyAzoGp2rt4CB9e5yazdlK-0G28Dp7TbXtQ",
             authDomain: "zsnapypro-d9d22.firebaseapp.com",
@@ -301,218 +158,143 @@
             messagingSenderId: "614389089654",
             appId: "1:614389089654:web:b4e8d502a8c0e996146657"
         };
-
+        
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
         const db = firebase.firestore();
-        let currentUser = null;
-        let meetLink = "https://meet.google.com";
+        const auth = firebase.auth();
 
-        // --- 🎮 TAB LOGIC ---
-        function switchTab(tabId) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
-            // Show target tab
-            document.getElementById('tab-' + tabId).classList.add('active');
-            
-            // Update Mobile Nav styling
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            const navItem = document.getElementById('nav-' + tabId);
-            if(navItem) navItem.classList.add('active');
-            
-            // Scroll chat to bottom if chat tab
-            if(tabId === 'chat') {
-                const box = document.getElementById('chat-box');
-                setTimeout(() => box.scrollTop = box.scrollHeight, 100);
-            }
+        function adminAuth() {
+            auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then((res) => {
+                if(res.user.email === ALLOWED_ADMIN) initAdmin();
+                else { Swal.fire('Access Denied', '', 'error'); auth.signOut(); }
+            });
         }
 
-        // --- 🔐 AUTH FLOW ---
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                currentUser = user;
-                const doc = await db.collection('students').doc(user.uid).get();
-                if (doc.exists) {
-                    initApp(user, doc.data());
-                } else {
-                    showView('payment-view');
+        function initAdmin() {
+            document.getElementById('gate').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            loadAllData();
+            loadInvites();
+        }
+        function logout() { auth.signOut().then(() => location.reload()); }
+
+        // --- INVITE SYSTEM (NEW) ---
+        function generateInvite() {
+            const name = document.getElementById('inp-invite-name').value.trim();
+            if(!name) return Swal.fire('Enter Name', '', 'warning');
+
+            const code = 'ZSP-' + Math.floor(1000 + Math.random() * 9000);
+            
+            db.collection('invites').doc(code).set({
+                code: code,
+                studentName: name,
+                status: 'active',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                document.getElementById('inp-invite-name').value = '';
+                toast(`Generated: ${code}`);
+                loadInvites();
+            });
+        }
+
+        function loadInvites() {
+            db.collection('invites').where('status', '==', 'active').orderBy('createdAt', 'desc').onSnapshot(snap => {
+                const list = document.getElementById('invite-list');
+                if(snap.empty) {
+                    list.innerHTML = '<div class="text-xs text-slate-500 text-center p-2">No active invites.</div>';
+                    return;
                 }
-            } else {
-                showView('auth-view');
-            }
-        });
-
-        function signIn() {
-            auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(err => Swal.fire('Error', err.message, 'error'));
-        }
-
-        // --- 💰 REGISTRATION ---
-        function initiatePayment() {
-            window.location.href = `upi://pay?pa=monsterprince3641@ibl&pn=ZSnappyPro&am=999.00&cu=INR`;
-            
-            const bar = document.getElementById('loading-bar');
-            bar.classList.remove('w-0');
-            bar.classList.add('w-full');
-            
-            setTimeout(() => {
-                Swal.fire({
-                    title: 'Setup Profile',
-                    background: '#1e293b',
-                    color: '#fff',
-                    html: `
-                        <input id="swal-name" class="swal2-input" placeholder="Full Name" style="background:#0f172a; color:white; border:1px solid #334155;">
-                        <input id="swal-city" class="swal2-input" placeholder="City" style="background:#0f172a; color:white; border:1px solid #334155;">
-                    `,
-                    confirmButtonText: 'Save & Continue',
-                    confirmButtonColor: '#0ea5e9',
-                    preConfirm: () => {
-                        return {
-                            name: document.getElementById('swal-name').value,
-                            city: document.getElementById('swal-city').value
-                        }
-                    }
-                }).then((result) => {
-                    if(result.isConfirmed && result.value.name) {
-                        finalizeRegistration(result.value);
-                    }
-                });
-            }, 6000);
-        }
-
-        async function finalizeRegistration(data) {
-            const uid = currentUser.uid;
-            await db.collection('students').doc(uid).set({
-                name: data.name,
-                city: data.city,
-                email: currentUser.email,
-                photo: currentUser.photoURL,
-                uid: uid,
-                joinedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            
-            // WhatsApp confirmation
-            const msg = `*New Student Registration*%0A%0AName: ${data.name}%0ACity: ${data.city}%0AEmail: ${currentUser.email}`;
-            window.open(`https://wa.me/916205170591?text=${msg}`, '_blank');
-            location.reload();
-        }
-
-        // --- 🚀 APP INITIALIZATION ---
-        function initApp(user, data) {
-            showView('app-shell');
-            document.getElementById('username').innerText = data.name.split(' ')[0];
-            document.getElementById('avatar').innerHTML = `<img src="${user.photoURL}" class="w-full h-full object-cover">`;
-
-            setupListeners(user.uid);
-        }
-
-        function setupListeners(uid) {
-            // Config
-            db.collection('system').doc('config').onSnapshot(doc => {
-                if(doc.exists) meetLink = doc.data().meetLink || "https://meet.google.com";
-            });
-
-            // Broadcast
-            db.collection('system').doc('broadcast').onSnapshot(doc => {
-                if(doc.exists && doc.data().active) {
-                    document.getElementById('broadcast-bar').style.display = 'flex';
-                    document.getElementById('broadcast-msg').innerText = doc.data().message;
-                } else {
-                    document.getElementById('broadcast-bar').style.display = 'none';
-                }
-            });
-
-            // Tasks
-            db.collection('system').doc('tasks').onSnapshot(doc => {
-                const list = document.getElementById('task-list');
-                if(doc.exists && doc.data().items) {
-                    list.innerHTML = doc.data().items.map(task => `
-                        <div class="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
-                            <div class="w-4 h-4 rounded-full border-2 border-slate-500"></div>
-                            <span class="text-sm text-slate-300">${task}</span>
-                        </div>
-                    `).join('');
-                }
-            });
-
-            // Resources
-            db.collection('system').doc('resources').onSnapshot(doc => {
-                const list = document.getElementById('resource-list');
-                if(doc.exists && doc.data().items) {
-                    list.innerHTML = doc.data().items.map(res => `
-                        <a href="${res.url}" target="_blank" class="block p-3 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-sky-500 transition-colors flex justify-between items-center">
-                            <span class="text-sm font-medium text-slate-300">${res.label}</span>
-                            <svg class="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                        </a>
-                    `).join('');
-                }
-            });
-
-            // Notes
-            const noteArea = document.getElementById('smart-notes');
-            db.collection('students').doc(uid).collection('private').doc('notes').get().then(doc => {
-                if(doc.exists) noteArea.value = doc.data().content || '';
-            });
-            
-            let noteTimeout;
-            noteArea.addEventListener('input', () => {
-                clearTimeout(noteTimeout);
-                noteTimeout = setTimeout(() => {
-                    db.collection('students').doc(uid).collection('private').doc('notes').set({
-                        content: noteArea.value,
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    }, { merge: true }).then(() => {
-                        const status = document.getElementById('save-status');
-                        status.style.opacity = '1';
-                        setTimeout(() => status.style.opacity = '0', 2000);
-                    });
-                }, 1000);
-            });
-
-            // Chat
-            const chatBox = document.getElementById('chat-box');
-            db.collection('chat').orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
-                const msgs = [];
-                snap.forEach(d => msgs.push(d.data()));
-                msgs.reverse();
-                
-                chatBox.innerHTML = msgs.map(m => {
-                    const isMe = m.uid === currentUser.uid;
+                list.innerHTML = snap.docs.map(doc => {
+                    const d = doc.data();
                     return `
-                        <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
-                            <div class="px-4 py-2 rounded-2xl text-sm max-w-[85%] ${isMe ? 'bg-sky-600 text-white rounded-tr-none' : 'bg-slate-700 text-slate-200 rounded-tl-none'}">
-                                ${m.text}
+                        <div class="flex items-center justify-between bg-slate-800 p-2 rounded border border-slate-700">
+                            <div>
+                                <span class="text-sky-400 font-bold font-mono block text-sm select-all cursor-pointer" onclick="navigator.clipboard.writeText('${d.code}'); toast('Copied!')">${d.code}</span>
+                                <span class="text-slate-400 text-xs">${d.studentName}</span>
                             </div>
-                            <span class="text-[10px] text-slate-500 mt-1 px-1">${m.sender}</span>
+                            <button onclick="deleteInvite('${doc.id}')" class="text-slate-500 hover:text-red-400 text-xs">✕</button>
                         </div>
                     `;
                 }).join('');
-                chatBox.scrollTop = chatBox.scrollHeight;
             });
         }
 
-        function sendMessage(e) {
-            e.preventDefault();
-            const input = document.getElementById('chat-input');
-            const text = input.value.trim();
-            if(!text) return;
+        function deleteInvite(id) {
+            if(confirm('Delete this invite code?')) db.collection('invites').doc(id).delete();
+        }
 
-            db.collection('chat').add({
-                text: text,
-                uid: currentUser.uid,
-                sender: currentUser.displayName.split(' ')[0],
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        // --- EXISTING LOGIC ---
+        function loadAllData() {
+            db.collection('system').doc('config').onSnapshot(doc => {
+                if(doc.exists) {
+                    const d = doc.data();
+                    document.getElementById('inp-link').value = d.meetLink || '';
+                    document.getElementById('inp-topic').value = d.topic || '';
+                    document.getElementById('inp-time').value = d.scheduleTime || '';
+                    document.getElementById('inp-photo').value = d.adminPhoto || '';
+                    document.getElementById('live-toggle').checked = d.isLive || false;
+                    const l = document.getElementById('status-label');
+                    if(d.isLive) { l.innerText = "LIVE NOW"; l.className = "text-xs font-bold uppercase text-red-500 live-pulse"; }
+                    else { l.innerText = "Offline"; l.className = "text-xs font-bold uppercase text-slate-400"; }
+                }
             });
-            input.value = '';
+            
+            db.collection('students').orderBy('joinedAt', 'desc').onSnapshot(snap => {
+                document.getElementById('student-count').innerText = snap.size;
+                document.querySelector('#student-table tbody').innerHTML = snap.docs.map(doc => {
+                    const d = doc.data();
+                    return `<tr><td class="font-bold text-white">${d.name}</td><td class="text-slate-400">${d.city}</td><td class="text-xs font-mono text-sky-400">${d.accessCode || '-'}</td><td class="text-right"><button onclick="deleteStudent('${doc.id}')" class="text-red-400 text-xs font-bold">REMOVE</button></td></tr>`;
+                }).join('');
+            });
+
+            // Resources Logic
+            db.collection('system').doc('resources').onSnapshot(doc => {
+                const container = document.getElementById('resource-list-container');
+                if(doc.exists && doc.data().items && doc.data().items.length > 0) {
+                    container.innerHTML = doc.data().items.map((item, index) => `
+                        <div class="flex justify-between bg-slate-900 p-2 rounded text-xs border border-slate-700">
+                            <div class="truncate w-full pr-2"><span class="text-sky-400 font-bold">${item.label}</span></div>
+                            <button onclick="deleteResource(${index})" class="text-slate-500 hover:text-red-400">🗑️</button>
+                        </div>`).join('');
+                } else { container.innerHTML = '<div class="text-center text-xs text-slate-500">No items</div>'; }
+            });
         }
 
-        function joinMeet() {
-            window.open(`${meetLink}?authuser=${currentUser.email}`, '_blank');
+        function updateSessionConfig() {
+            db.collection('system').doc('config').set({
+                meetLink: document.getElementById('inp-link').value,
+                topic: document.getElementById('inp-topic').value,
+                scheduleTime: document.getElementById('inp-time').value
+            }, { merge: true }).then(() => toast('Updated'));
         }
 
-        function showView(id) {
-            ['auth-view', 'payment-view', 'app-shell'].forEach(v => document.getElementById(v).classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
+        function toggleLiveStatus() {
+            const s = document.getElementById('live-toggle').checked;
+            db.collection('system').doc('config').set({ isLive: s }, { merge: true });
         }
+        function saveBranding() { db.collection('system').doc('config').set({ adminPhoto: document.getElementById('inp-photo').value }, { merge: true }); }
+        function toggleBroadcast(a) { db.collection('system').doc('broadcast').set({ active: a, message: document.getElementById('inp-broadcast').value }); }
+        function saveTasks() { db.collection('system').doc('tasks').set({ items: document.getElementById('inp-tasks').value.split('\n').filter(t=>t.trim()) }); }
+        
+        function addResource() {
+            const l = document.getElementById('res-label').value, u = document.getElementById('res-url').value;
+            if(!l||!u) return;
+            db.collection('system').doc('resources').get().then(doc => {
+                const c = doc.exists ? doc.data().items || [] : [];
+                c.push({label:l, url:u});
+                db.collection('system').doc('resources').set({items:c}).then(()=>{
+                     document.getElementById('res-label').value=''; document.getElementById('res-url').value='';
+                });
+            });
+        }
+        function deleteResource(i) {
+             db.collection('system').doc('resources').get().then(doc => {
+                const c = doc.data().items; c.splice(i,1);
+                db.collection('system').doc('resources').set({items:c});
+            });
+        }
+        function deleteStudent(uid) { if(confirm('Remove student?')) db.collection('students').doc(uid).delete(); }
+        function toast(msg) { Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: msg }); }
     </script>
 </body>
 </html>
