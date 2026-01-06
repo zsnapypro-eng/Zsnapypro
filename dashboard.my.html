@@ -138,7 +138,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            <!-- 🔴 COLUMN 1: LIVE CLASS CONTROLLER -->
+            <!-- 🔴 COLUMN 1: LIVE CLASS & ACCESS -->
             <div class="lg:col-span-2 space-y-6">
                 
                 <!-- 1. SESSION CONTROLS -->
@@ -177,7 +177,34 @@
                     </div>
                 </div>
 
-                <!-- 2. STUDENT DATABASE -->
+                <!-- 2. ACCESS MANAGEMENT (NEW) -->
+                <div class="panel border-l-4 border-l-green-500">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <span>🔑</span> Access Management (Manual Registration)
+                    </h2>
+                    <div class="grid md:grid-cols-3 gap-4 mb-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Student Name (for tracking)</label>
+                            <input id="inp-invite-name" class="input-dark" placeholder="Enter student name to generate ID">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="generateInvite()" class="btn btn-primary w-full h-[42px]">Generate ID</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 rounded-lg border border-slate-700 overflow-hidden">
+                        <div class="px-4 py-2 bg-slate-800 border-b border-slate-700 text-xs font-bold text-slate-400 uppercase flex justify-between">
+                            <span>Active Unused Invites</span>
+                            <span onclick="loadInvites()" class="cursor-pointer hover:text-white transition-colors">Refresh ↻</span>
+                        </div>
+                        <div id="invite-list" class="max-h-48 overflow-y-auto custom-scrollbar p-2 space-y-2">
+                            <!-- Invites injected here -->
+                            <div class="text-center text-xs text-slate-500 py-2">Loading invites...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. STUDENT DATABASE -->
                 <div class="panel">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-lg font-bold">Registered Students</h2>
@@ -190,7 +217,7 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>City</th>
-                                    <th>Joined</th>
+                                    <th>ID</th>
                                     <th class="text-right">Action</th>
                                 </tr>
                             </thead>
@@ -206,7 +233,7 @@
             <!-- 🔵 COLUMN 2: TOOLS & SETTINGS -->
             <div class="space-y-6">
 
-                <!-- 3. BROADCAST SYSTEM -->
+                <!-- 4. BROADCAST SYSTEM -->
                 <div class="panel border-t-4 border-t-purple-500">
                     <h2 class="text-sm font-bold uppercase text-slate-400 mb-3">📢 Global Broadcast</h2>
                     <textarea id="inp-broadcast" class="input-dark h-24 resize-none mb-3" placeholder="Alert message for all students..."></textarea>
@@ -216,7 +243,7 @@
                     </div>
                 </div>
 
-                <!-- 4. CONTENT MANAGER -->
+                <!-- 5. CONTENT MANAGER -->
                 <div class="panel">
                     <h2 class="text-sm font-bold uppercase text-slate-400 mb-3">📚 Content Manager</h2>
                     
@@ -236,14 +263,14 @@
                             <button onclick="addResource()" class="btn bg-slate-700 w-full text-xs py-1">Add Link</button>
                         </div>
                         
-                        <!-- UPDATED: Resource List Container for Editing -->
+                        <!-- Resource List Container for Editing -->
                         <div id="resource-list-container" class="space-y-2 mt-3 max-h-40 overflow-y-auto pr-1 custom-scrollbar bg-slate-800/50 rounded p-2">
                             <!-- Items injected via JS -->
                         </div>
                     </div>
                 </div>
 
-                <!-- 5. SETTINGS (Logo) -->
+                <!-- 6. SETTINGS (Logo) -->
                 <div class="panel">
                     <h2 class="text-sm font-bold uppercase text-slate-400 mb-3">⚙️ Branding</h2>
                     <label class="text-[10px] text-sky-400 uppercase font-bold">Admin Photo URL (Logo)</label>
@@ -253,7 +280,7 @@
                     </div>
                 </div>
 
-                <!-- 6. SPY CHAT -->
+                <!-- 7. SPY CHAT -->
                 <div class="panel h-[300px] flex flex-col">
                     <div class="flex justify-between items-center mb-2">
                         <h2 class="text-sm font-bold uppercase text-slate-400">🕵️ Chat Monitor</h2>
@@ -302,15 +329,94 @@
             document.getElementById('gate').classList.add('hidden');
             document.getElementById('dashboard').classList.remove('hidden');
             loadAllData();
+            loadInvites(); // New functionality
         }
 
         function logout() {
             auth.signOut().then(() => location.reload());
         }
 
-        // --- 📡 DATA LOADING ---
+        // --- 🔑 INVITE SYSTEM (NEW - Fixed Sorting) ---
+        function generateInvite() {
+            const name = document.getElementById('inp-invite-name').value.trim();
+            if(!name) return Swal.fire('Error', 'Please enter a student name.', 'warning');
+
+            // Generate unique 4 digit code e.g., ZSP-4821
+            const code = 'ZSP-' + Math.floor(1000 + Math.random() * 9000);
+            
+            db.collection('invites').doc(code).set({
+                code: code,
+                studentName: name,
+                status: 'active',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                document.getElementById('inp-invite-name').value = '';
+                toast(`Generated ID: ${code}`);
+                // Listener will auto-update the list
+            }).catch(e => Swal.fire('Error', e.message, 'error'));
+        }
+
+        function loadInvites() {
+            // FIXED: Removed .orderBy('createdAt') to prevent "Missing Index" error. Sorting client-side.
+            db.collection('invites').where('status', '==', 'active').onSnapshot(snap => {
+                const list = document.getElementById('invite-list');
+                
+                if(snap.empty) {
+                    list.innerHTML = '<div class="text-xs text-slate-500 text-center p-4 italic">No active unused invites.</div>';
+                    return;
+                }
+                
+                // Client-side sorting (Newest first)
+                const invites = [];
+                snap.forEach(doc => invites.push({ id: doc.id, ...doc.data() }));
+                invites.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+                list.innerHTML = invites.map(d => {
+                    return `
+                        <div class="flex items-center justify-between bg-slate-800 p-3 rounded-md border border-slate-700 hover:border-sky-500/50 transition-colors group">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sky-400 font-bold font-mono text-sm tracking-wider select-all cursor-pointer" onclick="navigator.clipboard.writeText('${d.code}'); toast('Copied ID!')" title="Click to Copy">${d.code}</span>
+                                </div>
+                                <span class="text-slate-400 text-xs block mt-1">For: <span class="text-white font-bold">${d.studentName}</span></span>
+                            </div>
+                            <div class="flex gap-1">
+                                <button onclick="editInviteName('${d.code}', '${d.studentName}')" class="text-slate-500 hover:text-sky-400 p-1 transition-colors" title="Edit Name">✏️</button>
+                                <button onclick="deleteInvite('${d.code}')" class="text-slate-500 hover:text-red-400 p-1 transition-colors" title="Revoke ID">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        function deleteInvite(id) {
+            if(confirm('Revoke this Access ID? The student will not be able to use it.')) {
+                db.collection('invites').doc(id).delete().then(() => toast('ID Revoked'));
+            }
+        }
+
+        function editInviteName(id, oldName) {
+            Swal.fire({
+                title: 'Edit Student Name',
+                input: 'text',
+                inputValue: oldName,
+                background: '#1e293b',
+                color: '#fff',
+                confirmButtonColor: '#0ea5e9',
+                showCancelButton: true,
+                cancelButtonColor: '#334155'
+            }).then((result) => {
+                if(result.isConfirmed && result.value) {
+                    db.collection('invites').doc(id).update({ studentName: result.value })
+                    .then(() => toast('Name Updated'));
+                }
+            });
+        }
+
+        // --- 📡 DATA LOADING (EXISTING) ---
         function loadAllData() {
-            // 1. Config (Link, Topic, Time, Live Status, Photo)
+            // 1. Config
             db.collection('system').doc('config').onSnapshot(doc => {
                 if(doc.exists) {
                     const data = doc.data();
@@ -319,7 +425,6 @@
                     document.getElementById('inp-time').value = data.scheduleTime || '';
                     document.getElementById('inp-photo').value = data.adminPhoto || '';
                     
-                    // Live Toggle UI
                     const toggle = document.getElementById('live-toggle');
                     const label = document.getElementById('status-label');
                     toggle.checked = data.isLive || false;
@@ -339,7 +444,7 @@
                 if(doc.exists) document.getElementById('inp-tasks').value = (doc.data().items || []).join('\n');
             });
 
-            // 3. Resources (UPDATED to show list with Edit/Delete)
+            // 3. Resources
             db.collection('system').doc('resources').onSnapshot(doc => {
                 const container = document.getElementById('resource-list-container');
                 if(doc.exists) {
@@ -365,7 +470,7 @@
                 }
             });
 
-            // 4. Students
+            // 4. Students (Updated table to show ID)
             db.collection('students').orderBy('joinedAt', 'desc').onSnapshot(snap => {
                 document.getElementById('student-count').innerText = snap.size;
                 const tbody = document.querySelector('#student-table tbody');
@@ -373,11 +478,14 @@
                 tbody.innerHTML = snap.docs.map(doc => {
                     const d = doc.data();
                     const date = d.joinedAt ? new Date(d.joinedAt.toDate()).toLocaleDateString() : '-';
+                    // Show Access ID if available, else '-'
+                    const accessId = d.accessCode ? `<span class="font-mono text-sky-400 bg-slate-800 px-1 rounded">${d.accessCode}</span>` : '-';
+                    
                     return `
                         <tr>
                             <td class="font-bold text-white">${d.name}</td>
                             <td class="text-slate-400">${d.city}</td>
-                            <td class="text-slate-500 text-xs font-mono">${date}</td>
+                            <td class="text-xs text-slate-500">${accessId}</td>
                             <td class="text-right">
                                 <button onclick="deleteStudent('${doc.id}')" class="text-red-400 hover:text-red-300 text-xs font-bold">REMOVE</button>
                             </td>
@@ -398,9 +506,8 @@
             });
         }
 
-        // --- ⚡ ACTIONS ---
+        // --- ⚡ ACTIONS (EXISTING) ---
 
-        // 1. Session Manager
         function updateSessionConfig() {
             const link = document.getElementById('inp-link').value;
             const topic = document.getElementById('inp-topic').value;
@@ -419,21 +526,18 @@
                 .then(() => toast(isLive ? 'Class is LIVE!' : 'Class Ended'));
         }
 
-        // 2. Branding
         function saveBranding() {
             const photo = document.getElementById('inp-photo').value;
             db.collection('system').doc('config').set({ adminPhoto: photo }, { merge: true })
                 .then(() => toast('Logo Updated'));
         }
 
-        // 3. Broadcast
         function toggleBroadcast(active) {
             const msg = document.getElementById('inp-broadcast').value;
             db.collection('system').doc('broadcast').set({ active: active, message: msg })
                 .then(() => toast(active ? 'Alert Deployed' : 'Alert Cleared'));
         }
 
-        // 4. Content (Tasks & Resources)
         function saveTasks() {
             const tasks = document.getElementById('inp-tasks').value.split('\n').filter(t => t.trim());
             db.collection('system').doc('tasks').set({ items: tasks })
@@ -457,7 +561,6 @@
             });
         }
 
-        // UPDATED: Delete Resource
         function deleteResource(index) {
             Swal.fire({
                 title: 'Delete Resource?',
@@ -483,7 +586,6 @@
             });
         }
 
-        // UPDATED: Edit Resource
         function editResource(index, oldLabel, oldUrl) {
             Swal.fire({
                 title: 'Edit Resource',
@@ -519,7 +621,6 @@
             });
         }
 
-        // 5. User Management
         function deleteStudent(uid) {
             if(confirm('Are you sure you want to remove this student?')) {
                 db.collection('students').doc(uid).delete().then(() => toast('Student Removed'));
@@ -528,7 +629,6 @@
 
         function purgeChat() {
             if(confirm('Delete all chat messages?')) {
-                // Warning: Batch delete in client side loop (Fine for small chats)
                 db.collection('chat').get().then(snap => {
                     snap.forEach(doc => doc.ref.delete());
                     toast('Chat Logs Purged');
