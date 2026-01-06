@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZsnapyPro | Student App</title>
+    <title>Z Snappy Pro | Student App</title>
     
     <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -54,14 +54,14 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(12px);
             border-top: 1px solid var(--border-light);
             display: flex;
             justify-content: space-around;
             padding: 12px 0;
             z-index: 50;
-            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
         }
 
         .nav-item {
@@ -69,12 +69,12 @@
             flex-direction: column;
             align-items: center;
             font-size: 11px;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text-muted);
             transition: all 0.3s;
             cursor: pointer;
-            padding: 4px 12px;
-            border-radius: 12px;
+            padding: 6px 16px;
+            border-radius: 16px;
         }
 
         .nav-item.active { 
@@ -111,6 +111,7 @@
             transition: all 0.2s;
             box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
             border: none;
+            width: 100%;
         }
         .btn-primary:active { opacity: 0.9; transform: scale(0.98); }
 
@@ -121,6 +122,7 @@
             color: #0f172a !important;
             border-radius: 12px;
             width: 100%;
+            padding: 12px;
             transition: all 0.2s;
         }
         input:focus, textarea:focus {
@@ -157,39 +159,45 @@
                 Z
             </div>
         </div>
-        <h1 class="text-4xl font-bold mb-3 heading-font text-slate-900">ZsnapyPro</h1>
+        <h1 class="text-4xl font-bold mb-3 heading-font text-slate-900">Z Snappy Pro</h1>
         <p class="text-slate-500 mb-10 max-w-xs text-lg">Your AI-powered learning workspace.</p>
         
         <button onclick="signIn()" class="w-full max-w-sm bg-white border border-slate-200 text-slate-700 font-bold py-4 rounded-xl flex items-center justify-center gap-3 hover:bg-slate-50 hover:border-sky-200 transition-all shadow-lg shadow-slate-200/50">
-            <b>Register in Course</b>
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/0/google.svg" class="w-6">
+            Sign in with Google
         </button>
     </div>
 
-    <!-- 💳 2. REGISTRATION SCREEN -->
-    <div id="payment-view" class="hidden h-screen flex flex-col items-center justify-center p-6 text-center">
-        <div class="card w-full max-w-sm bg-white border-2 border-sky-100">
+    <!-- 🔑 2. ACCESS ID VERIFICATION (REPLACES PAYMENT) -->
+    <div id="verify-view" class="hidden h-screen flex flex-col items-center justify-center p-6 text-center bg-sky-50">
+        <div class="card w-full max-w-sm bg-white border-2 border-sky-100 shadow-xl">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold heading-font text-slate-800">Setup Access</h2>
-                <span class="bg-sky-100 text-sky-700 text-xs font-bold px-2 py-1 rounded">Step 2/2</span>
+                <h2 class="text-2xl font-bold heading-font text-slate-800">Student Access</h2>
+                <span class="bg-sky-100 text-sky-700 text-xs font-bold px-2 py-1 rounded">Verify</span>
             </div>
             
-            <div id="loading-bar" class="h-1.5 bg-sky-100 w-full rounded-full mb-6 overflow-hidden">
-                <div class="h-full bg-sky-500 w-0 transition-all duration-[6000ms] rounded-full"></div>
-            </div>
-            
-            <p class="text-slate-500 text-sm mb-6 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                Unlock lifetime access to the AI Media Engine and live mentorship.
+            <p class="text-slate-500 text-sm mb-6 text-left">
+                Enter the unique Access ID provided by your Admin to unlock the portal.
             </p>
             
-            <div class="flex justify-between items-end mb-8">
-                <span class="text-sm font-medium text-slate-400">Commitment</span>
-                <span class="text-4xl font-bold text-slate-900">₹200</span>
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="text-xs font-bold uppercase text-slate-400 mb-1 block">Access ID Code</label>
+                    <input id="inp-access-id" placeholder="ZSP-XXXX" class="font-mono text-center text-lg tracking-widest uppercase text-sky-600 font-bold border-2 border-sky-100 focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="text-xs font-bold uppercase text-slate-400 mb-1 block">Your City</label>
+                    <input id="inp-city" placeholder="e.g. Mumbai">
+                </div>
+                
+                <button onclick="verifyAccess()" class="btn-primary flex items-center justify-center gap-2 group mt-4">
+                    <span>Verify & Enter</span>
+                    <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                </button>
             </div>
-
-            <button onclick="initiatePayment()" class="btn-primary w-full flex items-center justify-center gap-2 group">
-                <span>Unlock Now</span>
-                <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
-            </button>
+            <p class="text-[10px] text-slate-400 mt-4 text-center">
+                This ID will be permanently locked to your Google Account.
+            </p>
         </div>
     </div>
 
@@ -199,11 +207,10 @@
         <!-- Top Header -->
         <header class="bg-white/80 backdrop-blur border-b border-sky-100 sticky top-0 z-40">
             <div class="max-w-5xl mx-auto px-6 h-16 flex justify-between items-center">
-                <!-- LOGO SECTION: DYNAMICALLY UPDATED -->
+                <!-- LOGO SECTION -->
                 <div class="flex items-center gap-2" id="brand-container">
-                    <!-- Default Logo -->
                     <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-white font-bold shadow-lg shadow-sky-200">Z</div>
-                    <span class="font-bold text-lg hidden md:block heading-font text-slate-800">ZsnapyPro</span>
+                    <span class="font-bold text-lg hidden md:block heading-font text-slate-800">Snappy Pro</span>
                 </div>
                 
                 <!-- Desktop Nav -->
@@ -245,12 +252,11 @@
                 <!-- Welcome Banner -->
                 <div class="mb-6">
                     <h2 class="text-2xl font-bold heading-font text-slate-900">Hello, <span class="text-sky-500" id="welcome-name">Student</span> 👋</h2>
-                    <p class="text-slate-500 text-sm">Ready to learn something new today?</p>
+                    <p class="text-slate-500 text-sm">Here is your daily overview.</p>
                 </div>
 
-                <!-- Live Class Card (Updated) -->
+                <!-- Live Class Card -->
                 <div class="card bg-gradient-to-br from-sky-500 to-blue-600 text-white border-none shadow-xl shadow-sky-500/20 relative overflow-hidden group">
-                    <!-- Decor -->
                     <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -mr-10 -mt-10"></div>
                     
                     <div class="flex justify-between items-start mb-6 relative z-10">
@@ -276,22 +282,9 @@
                     </button>
 
                     <!-- OFFLINE MESSAGE -->
-                    <div id="offline-msg" class="w-full bg-white/20 backdrop-blur-sm border border-white/10 text-white font-medium py-3.5 rounded-xl text-center relative z-10">
-                        ⏳ Waiting for Host to Start...
-                    </div>
-                </div>
-
-                <!-- Stats / Quick Info -->
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="card p-4 flex flex-col items-center justify-center text-center !m-0 bg-white">
-                        <span class="text-3xl mb-1">🔥</span>
-                        <span class="text-xs font-bold text-slate-400 uppercase">Streak</span>
-                        <span class="text-xl font-bold text-slate-800">12 Days</span>
-                    </div>
-                    <div class="card p-4 flex flex-col items-center justify-center text-center !m-0 bg-white">
-                        <span class="text-3xl mb-1">🏆</span>
-                        <span class="text-xs font-bold text-slate-400 uppercase">Rank</span>
-                        <span class="text-xl font-bold text-slate-800">Pro</span>
+                    <div id="offline-msg" class="w-full bg-white/20 backdrop-blur-sm border border-white/10 text-white font-medium py-3.5 rounded-xl text-center relative z-10 flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Waiting for Host...
                     </div>
                 </div>
 
@@ -337,7 +330,7 @@
                     </div>
                 </div>
 
-                <!-- Submit Work Section (New) -->
+                <!-- Submit Work -->
                 <div class="card mt-6 bg-slate-50 border-dashed border-2 border-slate-300">
                     <div class="text-center py-6">
                         <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm text-2xl">📤</div>
@@ -359,7 +352,7 @@
                         <div class="flex -space-x-2">
                             <div class="w-6 h-6 rounded-full bg-slate-200 border-2 border-white"></div>
                             <div class="w-6 h-6 rounded-full bg-slate-300 border-2 border-white"></div>
-                            <div class="w-6 h-6 rounded-full bg-sky-100 border-2 border-white flex items-center justify-center text-[8px] font-bold text-sky-600">+9</div>
+                            <div class="w-6 h-6 rounded-full bg-sky-100 border-2 border-white flex items-center justify-center text-[8px] font-bold text-sky-600">+</div>
                         </div>
                     </div>
                     
@@ -439,7 +432,7 @@
                 if (doc.exists) {
                     initApp(user, doc.data());
                 } else {
-                    showView('payment-view');
+                    showView('verify-view'); // Replaces payment view
                 }
             } else {
                 showView('auth-view');
@@ -450,49 +443,64 @@
             auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(err => Swal.fire('Error', err.message, 'error'));
         }
 
-        // --- 💰 REGISTRATION ---
-        function initiatePayment() {
-            window.location.href = `upi://pay?pa=monsterprince3641@ibl&pn=ZSnappyPro&am=200.00&cu=INR`;
-            
-            document.getElementById('loading-bar').querySelector('div').style.width = '100%';
-            
-            setTimeout(() => {
-                Swal.fire({
-                    title: 'Student Profile',
-                    html: `
-                        <input id="swal-name" class="swal2-input" placeholder="Full Name">
-                        <input id="swal-city" class="swal2-input" placeholder="City">
-                    `,
-                    confirmButtonText: 'Complete Setup',
-                    confirmButtonColor: '#0ea5e9',
-                    allowOutsideClick: false,
-                    preConfirm: () => {
-                        return {
-                            name: document.getElementById('swal-name').value,
-                            city: document.getElementById('swal-city').value
-                        }
-                    }
-                }).then((result) => {
-                    if(result.isConfirmed && result.value.name) {
-                        finalizeRegistration(result.value);
-                    }
-                });
-            }, 6000);
-        }
+        // --- 🔑 NEW VERIFICATION LOGIC (ACCESS ID) ---
+        async function verifyAccess() {
+            const code = document.getElementById('inp-access-id').value.trim().toUpperCase();
+            const city = document.getElementById('inp-city').value.trim();
 
-        async function finalizeRegistration(data) {
-            const uid = currentUser.uid;
-            await db.collection('students').doc(uid).set({
-                name: data.name,
-                city: data.city,
-                email: currentUser.email,
-                photo: currentUser.photoURL,
-                uid: uid,
-                joinedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            const msg = `*New Student Registration*%0A%0AName: ${data.name}%0ACity: ${data.city}%0AEmail: ${currentUser.email}`;
-            window.open(`https://wa.me/916205170591?text=${msg}`, '_blank');
-            location.reload();
+            if (!code || !city) return Swal.fire('Error', 'Please fill all fields.', 'warning');
+
+            Swal.fire({ title: 'Verifying...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+
+            try {
+                // 1. Check Invite Code in Firestore
+                const inviteRef = db.collection('invites').doc(code);
+                const inviteSnap = await inviteRef.get();
+
+                if (!inviteSnap.exists) {
+                    throw new Error('Invalid Access ID. Please check with Admin.');
+                }
+
+                const inviteData = inviteSnap.data();
+                if (inviteData.status !== 'active') {
+                    throw new Error('This ID has already been used.');
+                }
+
+                // 2. Atomic Transaction: Create Student Profile & Mark Invite as Used
+                const batch = db.batch();
+                
+                // Create Student Profile
+                const studentRef = db.collection('students').doc(currentUser.uid);
+                batch.set(studentRef, {
+                    name: inviteData.studentName, // Use name from Admin's invite
+                    city: city,
+                    email: currentUser.email,
+                    photo: currentUser.photoURL,
+                    uid: currentUser.uid,
+                    accessCode: code,
+                    joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Mark Invite Used
+                batch.update(inviteRef, { 
+                    status: 'used', 
+                    usedBy: currentUser.uid,
+                    usedAt: firebase.firestore.FieldValue.serverTimestamp() 
+                });
+
+                await batch.commit();
+
+                Swal.fire({
+                    title: 'Welcome!',
+                    text: 'Access Granted Successfully.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => location.reload());
+
+            } catch (error) {
+                Swal.fire('Verification Failed', error.message, 'error');
+            }
         }
 
         // --- 🚀 APP INITIALIZATION ---
@@ -522,12 +530,12 @@
                     if (adminPhoto) {
                         brandContainer.innerHTML = `
                             <img src="${adminPhoto}" class="w-9 h-9 rounded-full border border-sky-100 shadow-sm object-cover">
-                            <span class="font-bold text-lg hidden md:block heading-font text-slate-800">ZsnapyPro</span>
+                            <span class="font-bold text-lg hidden md:block heading-font text-slate-800">Snappy Pro</span>
                         `;
                     } else {
                         brandContainer.innerHTML = `
                             <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-white font-bold shadow-lg shadow-sky-200">Z</div>
-                            <span class="font-bold text-lg hidden md:block heading-font text-slate-800">ZsnapyPro</span>
+                            <span class="font-bold text-lg hidden md:block heading-font text-slate-800">Snappy Pro</span>
                         `;
                     }
 
@@ -678,7 +686,7 @@
         }
 
         function showView(id) {
-            ['auth-view', 'payment-view', 'app-shell'].forEach(v => document.getElementById(v).classList.add('hidden'));
+            ['auth-view', 'verify-view', 'app-shell'].forEach(v => document.getElementById(v).classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
         }
     </script>
