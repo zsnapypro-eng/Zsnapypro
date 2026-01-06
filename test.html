@@ -336,7 +336,7 @@
             auth.signOut().then(() => location.reload());
         }
 
-        // --- 🔑 INVITE SYSTEM (NEW) ---
+        // --- 🔑 INVITE SYSTEM (NEW - Fixed Sorting) ---
         function generateInvite() {
             const name = document.getElementById('inp-invite-name').value.trim();
             if(!name) return Swal.fire('Error', 'Please enter a student name.', 'warning');
@@ -357,8 +357,8 @@
         }
 
         function loadInvites() {
-            // Listen only for 'active' invites
-            db.collection('invites').where('status', '==', 'active').orderBy('createdAt', 'desc').onSnapshot(snap => {
+            // FIXED: Removed .orderBy('createdAt') to prevent "Missing Index" error. Sorting client-side.
+            db.collection('invites').where('status', '==', 'active').onSnapshot(snap => {
                 const list = document.getElementById('invite-list');
                 
                 if(snap.empty) {
@@ -366,22 +366,24 @@
                     return;
                 }
                 
-                list.innerHTML = snap.docs.map(doc => {
-                    const d = doc.data();
-                    const date = d.createdAt ? new Date(d.createdAt.toDate()).toLocaleTimeString() : 'Just now';
-                    
+                // Client-side sorting (Newest first)
+                const invites = [];
+                snap.forEach(doc => invites.push({ id: doc.id, ...doc.data() }));
+                invites.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+                list.innerHTML = invites.map(d => {
                     return `
-                        <div class="flex items-center justify-between bg-slate-800 p-3 rounded-md border border-slate-700 hover:border-sky-500/50 transition-colors">
+                        <div class="flex items-center justify-between bg-slate-800 p-3 rounded-md border border-slate-700 hover:border-sky-500/50 transition-colors group">
                             <div>
                                 <div class="flex items-center gap-2">
                                     <span class="text-sky-400 font-bold font-mono text-sm tracking-wider select-all cursor-pointer" onclick="navigator.clipboard.writeText('${d.code}'); toast('Copied ID!')" title="Click to Copy">${d.code}</span>
-                                    <span class="text-[10px] bg-slate-700 text-slate-300 px-1 rounded">${date}</span>
                                 </div>
-                                <span class="text-slate-400 text-xs block mt-1">For: <span class="text-white">${d.studentName}</span></span>
+                                <span class="text-slate-400 text-xs block mt-1">For: <span class="text-white font-bold">${d.studentName}</span></span>
                             </div>
-                            <button onclick="deleteInvite('${doc.id}')" class="text-slate-500 hover:text-red-400 p-1 transition-colors" title="Revoke ID">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            </button>
+                            <div class="flex gap-1">
+                                <button onclick="editInviteName('${d.code}', '${d.studentName}')" class="text-slate-500 hover:text-sky-400 p-1 transition-colors" title="Edit Name">✏️</button>
+                                <button onclick="deleteInvite('${d.code}')" class="text-slate-500 hover:text-red-400 p-1 transition-colors" title="Revoke ID">🗑️</button>
+                            </div>
                         </div>
                     `;
                 }).join('');
@@ -392,6 +394,24 @@
             if(confirm('Revoke this Access ID? The student will not be able to use it.')) {
                 db.collection('invites').doc(id).delete().then(() => toast('ID Revoked'));
             }
+        }
+
+        function editInviteName(id, oldName) {
+            Swal.fire({
+                title: 'Edit Student Name',
+                input: 'text',
+                inputValue: oldName,
+                background: '#1e293b',
+                color: '#fff',
+                confirmButtonColor: '#0ea5e9',
+                showCancelButton: true,
+                cancelButtonColor: '#334155'
+            }).then((result) => {
+                if(result.isConfirmed && result.value) {
+                    db.collection('invites').doc(id).update({ studentName: result.value })
+                    .then(() => toast('Name Updated'));
+                }
+            });
         }
 
         // --- 📡 DATA LOADING (EXISTING) ---
