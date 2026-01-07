@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Z Snappy | Master Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root { --bg: #0f172a; --panel: #1e293b; --accent: #0ea5e9; }
+        body { background: var(--bg); color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .panel { background: var(--panel); border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .input-dark { background: #020617; border: 1px solid #334155; color: white; padding: 8px 12px; border-radius: 8px; width: 100%; font-size: 13px; }
+        .btn { padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; transition: 0.2s; cursor: pointer; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .color-picker { height: 40px; padding: 2px; cursor: pointer; }
+        .tab-btn { padding: 10px 20px; border-bottom: 2px solid transparent; opacity: 0.6; }
+        .tab-btn.active { border-color: var(--accent); opacity: 1; font-weight: bold; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="p-6 max-w-7xl mx-auto">
+
+    <!-- Auth Gate -->
+    <div id="gate" class="fixed inset-0 bg-slate-900 flex items-center justify-center z-50">
+        <div class="panel text-center max-w-sm">
+            <h1 class="text-2xl font-bold mb-4">Admin Console</h1>
+            <button onclick="adminAuth()" class="btn btn-primary w-full">Access System</button>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="hidden">
+        <header class="flex justify-between items-center mb-6">
+            <h1 class="text-xl font-bold text-sky-400">Z Snappy Pro <span class="text-slate-500 text-sm">/ Admin</span></h1>
+            <div class="flex gap-2">
+                <button onclick="saveAllSettings()" class="btn bg-green-600 text-white">💾 Save All Changes</button>
+                <button onclick="firebase.auth().signOut().then(()=>location.reload())" class="btn btn-danger">Logout</button>
+            </div>
+        </header>
+
+        <!-- Tabs -->
+        <div class="flex border-b border-slate-700 mb-6">
+            <button onclick="setTab('live')" class="tab-btn active" id="btn-live">🔴 Live & Content</button>
+            <button onclick="setTab('app')" class="tab-btn" id="btn-app">🎨 App Design</button>
+            <button onclick="setTab('users')" class="tab-btn" id="btn-users">👥 Users & Access</button>
+        </div>
+
+        <!-- TAB 1: LIVE & CONTENT -->
+        <div id="tab-content-live">
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Session Manager -->
+                <div class="panel border-l-4 border-l-red-500">
+                    <h3 class="font-bold mb-4">Live Session</h3>
+                    <div class="flex items-center gap-2 mb-4">
+                        <label class="text-xs uppercase font-bold text-slate-400">Class Status:</label>
+                        <select id="inp-live-status" class="input-dark w-auto bg-slate-800">
+                            <option value="false">Offline</option>
+                            <option value="true">🔴 LIVE</option>
+                        </select>
+                    </div>
+                    <div class="space-y-3">
+                        <input id="inp-topic" class="input-dark" placeholder="Topic (e.g. AI Basics)">
+                        <input id="inp-time" class="input-dark" placeholder="Time (e.g. 5:00 PM)">
+                        <input id="inp-meet" class="input-dark text-sky-400" placeholder="Meet Link">
+                    </div>
+                </div>
+
+                <!-- Assignment Manager -->
+                <div class="panel border-l-4 border-l-yellow-500">
+                    <h3 class="font-bold mb-4">Assignment Config</h3>
+                    <div class="space-y-3">
+                        <input id="inp-assign-title" class="input-dark" placeholder="Card Title (e.g. Submit Work)">
+                        <input id="inp-assign-desc" class="input-dark" placeholder="Description (e.g. Upload PDF)">
+                        <input id="inp-assign-link" class="input-dark text-yellow-400" placeholder="Submission URL (Forms/Drive)">
+                    </div>
+                </div>
+
+                <!-- Polls -->
+                <div class="panel">
+                    <h3 class="font-bold mb-4">Live Poll</h3>
+                    <input id="inp-poll-q" class="input-dark mb-2" placeholder="Question">
+                    <div class="flex gap-2">
+                        <button onclick="createPoll()" class="btn btn-primary flex-1">Launch Poll</button>
+                        <button onclick="clearPoll()" class="btn btn-danger">End</button>
+                    </div>
+                </div>
+
+                <!-- Broadcast -->
+                <div class="panel">
+                    <h3 class="font-bold mb-4">Broadcast Alert</h3>
+                    <input id="inp-broadcast" class="input-dark mb-2" placeholder="Message">
+                    <div class="flex gap-2">
+                        <button onclick="sendBroadcast(true)" class="btn btn-primary flex-1">Show</button>
+                        <button onclick="sendBroadcast(false)" class="btn btn-danger">Hide</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: APP DESIGN -->
+        <div id="tab-content-app" class="hidden">
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Branding -->
+                <div class="panel">
+                    <h3 class="font-bold mb-4">Branding & Identity</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs text-slate-400">App Name</label>
+                            <input id="inp-app-name" class="input-dark" placeholder="e.g. Z Snappy Pro">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400">Logo URL</label>
+                            <input id="inp-logo" class="input-dark" placeholder="https://...">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400">Splash Screen Subtitle</label>
+                            <input id="inp-splash-text" class="input-dark" placeholder="e.g. AI Learning Hub">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theme Colors -->
+                <div class="panel">
+                    <h3 class="font-bold mb-4">Color Theme</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">Primary Color</label>
+                            <input type="color" id="inp-col-primary" class="input-dark color-picker">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">Background Color</label>
+                            <input type="color" id="inp-col-bg" class="input-dark color-picker">
+                        </div>
+                    </div>
+                    <div class="mt-4 p-4 rounded bg-slate-800 text-xs text-slate-400">
+                        Updates reflect immediately on student devices.
+                    </div>
+                </div>
+
+                <!-- Links -->
+                <div class="panel">
+                    <h3 class="font-bold mb-4">External Links</h3>
+                    <div class="space-y-3">
+                        <input id="inp-support" class="input-dark" placeholder="Support/WhatsApp Link">
+                        <input id="inp-recordings" class="input-dark" placeholder="Recordings Archive Link">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: USERS (Access Management) -->
+        <div id="tab-content-users" class="hidden">
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Generator -->
+                <div class="panel md:col-span-1 border-l-4 border-l-green-500">
+                    <h3 class="font-bold mb-4">Generate Access ID</h3>
+                    <input id="inp-invite-name" class="input-dark mb-2" placeholder="Student Name">
+                    <button onclick="generateInvite()" class="btn btn-primary w-full">Create ID</button>
+                    
+                    <div id="invite-list" class="mt-4 h-64 overflow-y-auto space-y-2 bg-slate-900 p-2 rounded text-xs"></div>
+                </div>
+
+                <!-- Student List -->
+                <div class="panel md:col-span-2">
+                    <h3 class="font-bold mb-4">Registered Students</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="border-b border-slate-700 text-slate-400">
+                                <tr><th class="p-2">Name</th><th class="p-2">City</th><th class="p-2">ID</th><th class="p-2">Action</th></tr>
+                            </thead>
+                            <tbody id="student-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAzoGp2rt4CB9e5yazdlK-0G28Dp7TbXtQ",
+            authDomain: "zsnapypro-d9d22.firebaseapp.com",
+            projectId: "zsnapypro-d9d22",
+            storageBucket: "zsnapypro-d9d22.firebasestorage.app",
+            messagingSenderId: "614389089654",
+            appId: "1:614389089654:web:b4e8d502a8c0e996146657"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const ADMIN_EMAIL = "zsnapypro@gmail.com";
+
+        function adminAuth() {
+            auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(res => {
+                if(res.user.email === ADMIN_EMAIL) init();
+                else { alert('Unauthorized'); auth.signOut(); }
+            });
+        }
+
+        function init() {
+            document.getElementById('gate').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            loadConfig();
+            loadUsers();
+            loadInvites();
+        }
+
+        // --- TABS ---
+        function setTab(t) {
+            ['live','app','users'].forEach(id => {
+                document.getElementById('btn-'+id).classList.remove('active');
+                document.getElementById('tab-content-'+id).classList.add('hidden');
+            });
+            document.getElementById('btn-'+t).classList.add('active');
+            document.getElementById('tab-content-'+t).classList.remove('hidden');
+        }
+
+        // --- DATA LOAD & SAVE ---
+        function loadConfig() {
+            db.collection('system').doc('config').onSnapshot(doc => {
+                if(!doc.exists) return;
+                const d = doc.data();
+                
+                // Live
+                document.getElementById('inp-live-status').value = d.isLive || 'false';
+                document.getElementById('inp-topic').value = d.topic || '';
+                document.getElementById('inp-time').value = d.scheduleTime || '';
+                document.getElementById('inp-meet').value = d.meetLink || '';
+                
+                // Assign
+                document.getElementById('inp-assign-title').value = d.assignTitle || '';
+                document.getElementById('inp-assign-desc').value = d.assignDesc || '';
+                document.getElementById('inp-assign-link').value = d.assignLink || '';
+
+                // App Design
+                document.getElementById('inp-app-name').value = d.appName || 'Z Snappy Pro';
+                document.getElementById('inp-logo').value = d.adminPhoto || '';
+                document.getElementById('inp-splash-text').value = d.splashText || '';
+                document.getElementById('inp-col-primary').value = d.themePrimary || '#0ea5e9';
+                document.getElementById('inp-col-bg').value = d.themeBg || '#f0f9ff';
+                
+                // Links
+                document.getElementById('inp-support').value = d.supportLink || '';
+                document.getElementById('inp-recordings').value = d.recLink || '';
+            });
+        }
+
+        function saveAllSettings() {
+            db.collection('system').doc('config').set({
+                isLive: document.getElementById('inp-live-status').value === 'true',
+                topic: document.getElementById('inp-topic').value,
+                scheduleTime: document.getElementById('inp-time').value,
+                meetLink: document.getElementById('inp-meet').value,
+                
+                assignTitle: document.getElementById('inp-assign-title').value,
+                assignDesc: document.getElementById('inp-assign-desc').value,
+                assignLink: document.getElementById('inp-assign-link').value,
+                
+                appName: document.getElementById('inp-app-name').value,
+                adminPhoto: document.getElementById('inp-logo').value,
+                splashText: document.getElementById('inp-splash-text').value,
+                themePrimary: document.getElementById('inp-col-primary').value,
+                themeBg: document.getElementById('inp-col-bg').value,
+                
+                supportLink: document.getElementById('inp-support').value,
+                recLink: document.getElementById('inp-recordings').value
+            }, { merge: true }).then(() => Swal.fire('Saved', 'System Updated', 'success'));
+        }
+
+        // --- FEATURES ---
+        function createPoll() {
+            const q = document.getElementById('inp-poll-q').value;
+            db.collection('system').doc('poll').set({ question: q, active: true, votes: {} });
+            Swal.fire('Poll Live');
+        }
+        function clearPoll() { db.collection('system').doc('poll').update({ active: false }); }
+        
+        function sendBroadcast(active) {
+            db.collection('system').doc('broadcast').set({ 
+                active: active, 
+                message: document.getElementById('inp-broadcast').value 
+            });
+        }
+
+        function generateInvite() {
+            const name = document.getElementById('inp-invite-name').value;
+            if(!name) return;
+            const code = 'ZSP-' + Math.floor(1000 + Math.random()*9000);
+            db.collection('invites').doc(code).set({ 
+                code, studentName: name, status: 'active', createdAt: firebase.firestore.FieldValue.serverTimestamp() 
+            });
+        }
+
+        // --- LISTS ---
+        function loadInvites() {
+            db.collection('invites').where('status','==','active').onSnapshot(snap => {
+                document.getElementById('invite-list').innerHTML = snap.docs.map(d => `
+                    <div class="flex justify-between bg-slate-800 p-2 rounded mb-1">
+                        <div><span class="text-sky-400 font-bold">${d.id}</span> <span class="text-slate-400 ml-2">${d.data().studentName}</span></div>
+                        <button onclick="db.collection('invites').doc('${d.id}').delete()" class="text-red-400">×</button>
+                    </div>
+                `).join('');
+            });
+        }
+
+        function loadUsers() {
+            db.collection('students').orderBy('joinedAt','desc').onSnapshot(snap => {
+                document.getElementById('student-table').innerHTML = snap.docs.map(d => `
+                    <tr class="border-b border-slate-800">
+                        <td class="p-2 font-bold">${d.data().name}</td>
+                        <td class="p-2 text-slate-400">${d.data().city}</td>
+                        <td class="p-2 text-sky-400 font-mono">${d.data().accessCode}</td>
+                        <td class="p-2"><button onclick="db.collection('students').doc('${d.id}').delete()" class="text-red-500">Del</button></td>
+                    </tr>
+                `).join('');
+            });
+        }
+    </script>
+</body>
+</html>
