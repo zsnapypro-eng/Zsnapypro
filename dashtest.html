@@ -25,6 +25,10 @@
         .tab-btn { padding: 10px 20px; border-bottom: 2px solid transparent; opacity: 0.6; }
         .tab-btn.active { border-color: var(--accent); opacity: 1; font-weight: bold; }
         .hidden { display: none; }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     </style>
 </head>
 <body class="p-6 max-w-7xl mx-auto">
@@ -42,7 +46,7 @@
         <header class="flex justify-between items-center mb-6">
             <h1 class="text-xl font-bold text-sky-400">Z Snappy Pro <span class="text-slate-500 text-sm">/ Admin</span></h1>
             <div class="flex gap-2">
-                <button onclick="saveAllSettings()" class="btn bg-green-600 text-white">💾 Save All Changes</button>
+                <button onclick="saveAllSettings()" class="btn bg-green-600 text-white">💾 Save Config</button>
                 <button onclick="firebase.auth().signOut().then(()=>location.reload())" class="btn btn-danger">Logout</button>
             </div>
         </header>
@@ -76,11 +80,31 @@
 
                 <!-- Assignment Manager -->
                 <div class="panel border-l-4 border-l-yellow-500">
-                    <h3 class="font-bold mb-4">Assignment Config</h3>
+                    <h3 class="font-bold mb-4">Assignment Card</h3>
                     <div class="space-y-3">
-                        <input id="inp-assign-title" class="input-dark" placeholder="Card Title (e.g. Submit Work)">
-                        <input id="inp-assign-desc" class="input-dark" placeholder="Description (e.g. Upload PDF)">
+                        <input id="inp-assign-title" class="input-dark" placeholder="Title (e.g. Project 1)">
+                        <input id="inp-assign-desc" class="input-dark" placeholder="Description">
                         <input id="inp-assign-link" class="input-dark text-yellow-400" placeholder="Submission URL (Forms/Drive)">
+                    </div>
+                </div>
+
+                <!-- Tasks Manager (Restored) -->
+                <div class="panel">
+                    <h3 class="font-bold mb-4">Daily Tasks</h3>
+                    <textarea id="inp-tasks" class="input-dark h-24 font-mono text-xs mb-2" placeholder="Task 1&#10;Task 2&#10;Task 3"></textarea>
+                    <button onclick="saveTasks()" class="btn bg-slate-700 w-full text-xs">Sync Tasks</button>
+                </div>
+
+                <!-- Resource Manager (Restored) -->
+                <div class="panel">
+                    <h3 class="font-bold mb-4">Resource Library</h3>
+                    <div class="space-y-2 mb-4">
+                        <input id="res-label" class="input-dark text-xs" placeholder="Label (e.g. Course PDF)">
+                        <input id="res-url" class="input-dark text-xs" placeholder="URL">
+                        <button onclick="addResource()" class="btn bg-slate-700 w-full text-xs">Add Resource</button>
+                    </div>
+                    <div id="resource-list-container" class="space-y-2 max-h-40 overflow-y-auto bg-slate-900 p-2 rounded">
+                        <!-- List injected here -->
                     </div>
                 </div>
 
@@ -89,7 +113,7 @@
                     <h3 class="font-bold mb-4">Live Poll</h3>
                     <input id="inp-poll-q" class="input-dark mb-2" placeholder="Question">
                     <div class="flex gap-2">
-                        <button onclick="createPoll()" class="btn btn-primary flex-1">Launch Poll</button>
+                        <button onclick="createPoll()" class="btn btn-primary flex-1">Launch</button>
                         <button onclick="clearPoll()" class="btn btn-danger">End</button>
                     </div>
                 </div>
@@ -211,11 +235,12 @@
             document.getElementById('gate').classList.add('hidden');
             document.getElementById('dashboard').classList.remove('hidden');
             loadConfig();
+            loadTasks(); // Load Tasks
+            loadResources(); // Load Resources
             loadUsers();
             loadInvites();
         }
 
-        // --- TABS ---
         function setTab(t) {
             ['live','app','users'].forEach(id => {
                 document.getElementById('btn-'+id).classList.remove('active');
@@ -277,6 +302,54 @@
             }, { merge: true }).then(() => Swal.fire('Saved', 'System Updated', 'success'));
         }
 
+        // --- TASKS ---
+        function loadTasks() {
+            db.collection('system').doc('tasks').get().then(doc => {
+                if(doc.exists) document.getElementById('inp-tasks').value = (doc.data().items || []).join('\n');
+            });
+        }
+        function saveTasks() {
+            const items = document.getElementById('inp-tasks').value.split('\n').filter(t => t.trim());
+            db.collection('system').doc('tasks').set({ items }).then(() => Swal.fire('Tasks Synced'));
+        }
+
+        // --- RESOURCES ---
+        function loadResources() {
+            db.collection('system').doc('resources').onSnapshot(doc => {
+                const list = document.getElementById('resource-list-container');
+                if(doc.exists && doc.data().items) {
+                    list.innerHTML = doc.data().items.map((r, i) => `
+                        <div class="flex justify-between bg-slate-800 p-2 rounded text-xs">
+                            <div class="truncate w-2/3"><span class="text-sky-400 font-bold">${r.label}</span></div>
+                            <button onclick="deleteResource(${i})" class="text-red-400 hover:text-red-300">Del</button>
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = '<div class="text-slate-500 text-center text-xs">No resources</div>';
+                }
+            });
+        }
+        function addResource() {
+            const label = document.getElementById('res-label').value;
+            const url = document.getElementById('res-url').value;
+            if(!label || !url) return;
+            db.collection('system').doc('resources').get().then(doc => {
+                const items = doc.exists ? doc.data().items || [] : [];
+                items.push({label, url});
+                db.collection('system').doc('resources').set({items}).then(() => {
+                    document.getElementById('res-label').value = '';
+                    document.getElementById('res-url').value = '';
+                });
+            });
+        }
+        function deleteResource(index) {
+            db.collection('system').doc('resources').get().then(doc => {
+                const items = doc.data().items;
+                items.splice(index, 1);
+                db.collection('system').doc('resources').set({items});
+            });
+        }
+
         // --- FEATURES ---
         function createPoll() {
             const q = document.getElementById('inp-poll-q').value;
@@ -319,7 +392,7 @@
                     <tr class="border-b border-slate-800">
                         <td class="p-2 font-bold">${d.data().name}</td>
                         <td class="p-2 text-slate-400">${d.data().city}</td>
-                        <td class="p-2 text-sky-400 font-mono">${d.data().accessCode}</td>
+                        <td class="p-2 text-sky-400 font-mono">${d.data().accessCode || '-'}</td>
                         <td class="p-2"><button onclick="db.collection('students').doc('${d.id}').delete()" class="text-red-500">Del</button></td>
                     </tr>
                 `).join('');
